@@ -168,7 +168,7 @@ require __DIR__ . '/_header.php';
 <div class="page">
     <div class="page-header">
         <div class="title"><span class="brand">NANOOK</span> · Catégories</div>
-        <a href="/admin/products.html" class="back-link">&larr; Retour produits</a>
+        <a href="/admin/products.php" class="back-link">&larr; Retour produits</a>
     </div>
 
     <div class="card">
@@ -327,11 +327,11 @@ require __DIR__ . '/_header.php';
             });
             const data = await res.json();
             if (!data.authenticated) {
-                window.location.href = '/admin/index.html';
+                window.location.href = '/admin/index.php';
             }
         } catch (error) {
             console.error(error);
-            window.location.href = '/admin/index.html';
+            window.location.href = '/admin/index.php';
         }
     }
 

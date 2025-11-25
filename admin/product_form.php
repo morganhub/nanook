@@ -3,8 +3,8 @@
 
 declare(strict_types=1);
 
-$pageTitle = 'Produits form';
-$activeMenu = 'products_form';
+$pageTitle = 'Produit form';
+$activeMenu = 'product_form';
 require __DIR__ . '/_header.php';
 ?>
     <style>
@@ -255,7 +255,7 @@ require __DIR__ . '/_header.php';
 <div class="page">
     <div class="page-header">
         <div class="title"><span class="brand">NANOOK</span> · Produit</div>
-        <a href="/admin/products.html" class="back-link">&larr; Retour à la liste</a>
+        <a href="/admin/products.php" class="back-link">&larr; Retour à la liste</a>
     </div>
 
     <div id="message" class="message" style="display:none;"></div>
@@ -281,7 +281,7 @@ require __DIR__ . '/_header.php';
                 </div>
 
                 <div class="label-cell">
-                    <label for="priceInput">Prix (centimes)</label>
+                    <label for="priceInput">Prix (en euros)</label>
                 </div>
                 <div class="field-cell">
                     <input type="number" id="priceInput" min="0" step="1" required>
@@ -338,7 +338,7 @@ require __DIR__ . '/_header.php';
                 <div class="field-cell">
                     <div id="categoriesContainer" style="display:flex;flex-wrap:wrap;gap:8px 16px;"></div>
                     <div style="margin-top:4px;font-size:11px;color:#6b7280;">
-                        Gérer les catégories dans <a href="/admin/categories.html" style="color:#111827;text-decoration:underline;">l’écran dédié</a>.
+                        Gérer les catégories dans <a href="/admin/categories.php" style="color:#111827;text-decoration:underline;">l’écran dédié</a>.
                     </div>
                 </div>
             </div>
@@ -654,11 +654,11 @@ require __DIR__ . '/_header.php';
             });
             const data = await res.json();
             if (!data.authenticated) {
-                window.location.href = '/admin/index.html';
+                window.location.href = '/admin/index.php';
             }
         } catch (error) {
             console.error(error);
-            window.location.href = '/admin/index.html';
+            window.location.href = '/admin/index.php';
         }
     }
 
@@ -678,7 +678,7 @@ require __DIR__ . '/_header.php';
 
     cancelButton.addEventListener('click', (event) => {
         event.preventDefault();
-        window.location.href = '/admin/products.html';
+        window.location.href = '/admin/products.php';
     });
 
     async function loadCategories() {
@@ -758,7 +758,7 @@ require __DIR__ . '/_header.php';
             productIdInput.value = loadedProduct.id;
             nameInput.value = loadedProduct.name;
             slugInput.value = loadedProduct.slug;
-            priceInput.value = loadedProduct.price_cents;
+            priceInput.value = loadedProduct.price;
             stockInput.value = loadedProduct.stock_quantity;
             displayOrderInput.value = loadedProduct.display_order;
             isActiveInput.checked = !!loadedProduct.is_active;
@@ -799,7 +799,7 @@ require __DIR__ . '/_header.php';
             slug: slugInput.value.trim(),
             short_description: shortDescriptionInput.value.trim(),
             long_description: longDescriptionInput.value.trim(),
-            price_cents: parseInt(priceInput.value, 10) || 0,
+            price: parseInt(priceInput.value, 10) || 0,
             stock_quantity: parseInt(stockInput.value, 10) || 0,
             allow_preorder_when_oos: allowPreorderInput.checked ? 1 : 0,
             is_active: isActiveInput.checked ? 1 : 0,
@@ -836,7 +836,7 @@ require __DIR__ . '/_header.php';
                 loadedProduct = {id: pid, category_ids: selectedCategoryIds};
             }
             setTimeout(() => {
-                window.location.href = '/admin/products.html';
+                window.location.href = '/admin/products.php';
             }, 800);
         } catch (error) {
             console.error(error);
@@ -1051,10 +1051,10 @@ require __DIR__ . '/_header.php';
             tr.appendChild(tdSku);
 
             let tdPrice = document.createElement('td');
-            if (v.price_cents === null || typeof v.price_cents === 'undefined') {
+            if (v.price === null || typeof v.price === 'undefined') {
                 tdPrice.textContent = '—';
             } else {
-                let euros = (v.price_cents / 100).toFixed(2);
+                let euros = (v.price / 100).toFixed(2);
                 tdPrice.textContent = euros + ' €';
             }
             tr.appendChild(tdPrice);
@@ -1111,7 +1111,7 @@ require __DIR__ . '/_header.php';
             variantSkuInput.value = variant.sku || '';
             variantMaterialInput.value = variant.material || '';
             variantColorInput.value = variant.color || '';
-            variantPriceInput.value = variant.price_cents !== null ? variant.price_cents : '';
+            variantPriceInput.value = variant.price !== null ? variant.price : '';
             variantStockInput.value = variant.stock_quantity;
             variantOrderInput.value = variant.display_order;
             variantIsActiveInput.checked = !!variant.is_active;
@@ -1153,7 +1153,7 @@ require __DIR__ . '/_header.php';
             sku: variantSkuInput.value.trim(),
             material: variantMaterialInput.value.trim(),
             color: variantColorInput.value.trim(),
-            price_cents: variantPriceInput.value === '' ? null : (parseInt(variantPriceInput.value, 10) || 0),
+            price: variantPriceInput.value === '' ? null : (parseInt(variantPriceInput.value, 10) || 0),
             stock_quantity: parseInt(variantStockInput.value, 10) || 0,
             allow_preorder_when_oos: variantAllowPreorderInput.checked ? 1 : 0,
             is_active: variantIsActiveInput.checked ? 1 : 0,

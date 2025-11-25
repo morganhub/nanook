@@ -259,11 +259,11 @@ require __DIR__ . '/_header.php';
             });
             const data = await res.json();
             if (!data.authenticated) {
-                window.location.href = '/admin/index.html';
+                window.location.href = '/admin/index.php';
             }
         } catch (error) {
             console.error(error);
-            window.location.href = '/admin/index.html';
+            window.location.href = '/admin/index.php';
         }
     }
 
@@ -318,7 +318,7 @@ require __DIR__ . '/_header.php';
 
             const tdName = document.createElement('td');
             const nameLink = document.createElement('a');
-            nameLink.href = `/admin/product_form.html?id=${encodeURIComponent(p.id)}`;
+            nameLink.href = `/admin/product_form.php?id=${encodeURIComponent(p.id)}`;
             nameLink.textContent = p.name;
             nameLink.className = 'link';
             tdName.appendChild(nameLink);
@@ -330,7 +330,7 @@ require __DIR__ . '/_header.php';
             tr.appendChild(tdName);
 
             const tdPrice = document.createElement('td');
-            tdPrice.textContent = formatPrice(p.price_cents);
+            tdPrice.textContent = formatPrice(p.price);
             tr.appendChild(tdPrice);
 
             const tdStock = document.createElement('td');
@@ -382,7 +382,7 @@ require __DIR__ . '/_header.php';
 
             const tdActions = document.createElement('td');
             const editLink = document.createElement('a');
-            editLink.href = `/admin/product_form.html?id=${encodeURIComponent(p.id)}`;
+            editLink.href = `/admin/product_form.php?id=${encodeURIComponent(p.id)}`;
             editLink.textContent = 'Modifier';
             editLink.className = 'link';
             tdActions.appendChild(editLink);
@@ -475,7 +475,7 @@ require __DIR__ . '/_header.php';
     });
 
     addProductButton.addEventListener('click', () => {
-        window.location.href = '/admin/product_form.html';
+        window.location.href = '/admin/product_form.php';
     });
 
     (async function init() {

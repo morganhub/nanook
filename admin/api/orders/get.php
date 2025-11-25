@@ -55,7 +55,7 @@ $itemStmt = $pdo->prepare(
          product_name,
          variant_name,
          variant_sku,
-         unit_price_cents,
+         unit_price,
          quantity,
          is_preorder,
          customizations_json,
@@ -71,7 +71,7 @@ foreach ($items as &$item) {
     $item['id'] = (int)$item['id'];
     $item['product_id'] = $item['product_id'] !== null ? (int)$item['product_id'] : null;
     $item['variant_id'] = $item['variant_id'] !== null ? (int)$item['variant_id'] : null;
-    $item['unit_price_cents'] = (int)$item['unit_price_cents'];
+    $item['unit_price'] = (int)$item['unit_price'];
     $item['quantity'] = (int)$item['quantity'];
     $item['is_preorder'] = (int)$item['is_preorder'];
     $item['line_total_cents'] = (int)$item['line_total_cents'];

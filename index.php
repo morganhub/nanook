@@ -1,30 +1,19 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="description" content="" />
-    <meta name="keywords" content="" />
-    <meta name="author" content="" />
-    <link rel="shortcut icon" href="favicon.ico" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100&display=swap" rel="stylesheet">
-    <link href="css/styles.css" type="text/css" rel="stylesheet" media="screen" charset="utf-8" />
-    <meta id="viewport" name="viewport" content="width=device-width,initial-scale=0.9, maximum-scale=2">
-    <title>Nanook - Paris</title>
+<?php
+// public/index.php
+declare(strict_types=1);
 
-</head>
+// 1. Chargement de l'environnement et des configs
+require_once __DIR__ . '/src/config/env.php';
+require_once __DIR__ . '/admin/api/_bootstrap.php'; // Pour récupérer getPdo() facilement
 
+// 2. Démarrage de session (pour le panier plus tard)
+session_start();
 
+// 3. Connexion DB disponible pour tout le script
+$pdo = getPdo();
 
-<body>
+// 4. Chargement des services nécessaires (pour récupérer les produits/SEO)
+require_once __DIR__ . '/src/services/ProductService.php';
 
-<div class="titleContainer">
-    <div class="mainTitle">N<span class="maintTitleSmall">ANOO</span>K</div>
-    <div class="subTitle">Paris</div>
-</div>
-
-
-
-
-</body>
+// 5. Lancement du Routeur
+require_once __DIR__ . '/src/config/routes.php';

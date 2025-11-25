@@ -269,11 +269,11 @@ require __DIR__ . '/_header.php';
             });
             let data = await res.json();
             if (!data.authenticated) {
-                window.location.href = '/admin/index.html';
+                window.location.href = '/admin/index.php';
             }
         } catch (error) {
             console.error(error);
-            window.location.href = '/admin/index.html';
+            window.location.href = '/admin/index.php';
         }
     }
 
@@ -395,7 +395,7 @@ require __DIR__ . '/_header.php';
 
             let tdActions = document.createElement('td');
             let link = document.createElement('a');
-            link.href = '/admin/order_detail.html?id=' + encodeURIComponent(o.id);
+            link.href = '/admin/order_detail.php?id=' + encodeURIComponent(o.id);
             link.textContent = 'Détails';
             link.className = 'link';
             tdActions.appendChild(link);

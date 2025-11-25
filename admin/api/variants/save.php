@@ -27,7 +27,7 @@ $name = isset($input['name']) ? trim((string)$input['name']) : '';
 $sku = isset($input['sku']) ? trim((string)$input['sku']) : '';
 $material = isset($input['material']) ? trim((string)$input['material']) : '';
 $color = isset($input['color']) ? trim((string)$input['color']) : '';
-$priceCents = isset($input['price_cents']) && $input['price_cents'] !== null ? (int)$input['price_cents'] : null;
+$priceCents = isset($input['price']) && $input['price'] !== null ? (int)$input['price'] : null;
 $stockQuantity = isset($input['stock_quantity']) ? (int)$input['stock_quantity'] : 0;
 $allowPreorder = !empty($input['allow_preorder_when_oos']) ? 1 : 0;
 $isActive = !empty($input['is_active']) ? 1 : 0;
@@ -51,7 +51,7 @@ try {
                  sku = :sku,
                  material = :material,
                  color = :color,
-                 price_cents = :price_cents,
+                 price = :price,
                  stock_quantity = :stock_quantity,
                  allow_preorder_when_oos = :allow_preorder_when_oos,
                  is_active = :is_active,
@@ -64,7 +64,7 @@ try {
             ':sku' => $sku !== '' ? $sku : null,
             ':material' => $material !== '' ? $material : null,
             ':color' => $color !== '' ? $color : null,
-            ':price_cents' => $priceCents,
+            ':price' => $priceCents,
             ':stock_quantity' => $stockQuantity,
             ':allow_preorder_when_oos' => $allowPreorder,
             ':is_active' => $isActive,
@@ -81,10 +81,10 @@ try {
     } else {
         $stmt = $pdo->prepare(
             'INSERT INTO nanook_product_variants
-            (product_id, name, sku, material, color, price_cents, stock_quantity,
+            (product_id, name, sku, material, color, price, stock_quantity,
              allow_preorder_when_oos, is_active, display_order, created_at, updated_at)
             VALUES
-            (:product_id, :name, :sku, :material, :color, :price_cents, :stock_quantity,
+            (:product_id, :name, :sku, :material, :color, :price, :stock_quantity,
              :allow_preorder_when_oos, :is_active, :display_order, NOW(), NOW())'
         );
         $stmt->execute([
@@ -93,7 +93,7 @@ try {
             ':sku' => $sku !== '' ? $sku : null,
             ':material' => $material !== '' ? $material : null,
             ':color' => $color !== '' ? $color : null,
-            ':price_cents' => $priceCents,
+            ':price' => $priceCents,
             ':stock_quantity' => $stockQuantity,
             ':allow_preorder_when_oos' => $allowPreorder,
             ':is_active' => $isActive,

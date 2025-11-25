@@ -21,9 +21,9 @@ if (!headers_sent()) {
     header('Content-Type: text/plain; charset=utf-8');
 }
 
-$username = 'admin';
-$email = 'admin@nanook.paris';
-$plainPassword = 'change-me-123';
+$username = 'Ornella';
+$email = 'ornella1984@hotmail.com';
+$plainPassword = 'cZEokl230TZ';
 
 echo "=== createAdminUser.php ===\n\n";
 

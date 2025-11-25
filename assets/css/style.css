@@ -1,0 +1,177 @@
+:root {
+    /* Palette Éditoriale */
+    --nk-bg-color: #FDFBF7;        /* Blanc cassé / Coquille d'oeuf */
+    --nk-text-main: #1A1A2E;       /* Bleu nuit profond */
+    --nk-text-light: #555555;      /* Gris texte */
+    --nk-accent: #C18C5D;          /* Terracotta / Or vieilli */
+    --nk-border: #E5E5E5;
+
+    /* Typographie */
+    --nk-font-serif: 'Playfair Display', serif; /* Titres */
+    --nk-font-sans: 'Lato', sans-serif;         /* Corps */
+
+    /* Espacements */
+    --nk-spacing-xs: 8px;
+    --nk-spacing-sm: 16px;
+    --nk-spacing-md: 32px;
+    --nk-spacing-lg: 64px;
+    --nk-container: 1440px;
+}
+
+/* Reset Minimal */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background-color: var(--nk-bg-color);
+    color: var(--nk-text-main);
+    font-family: var(--nk-font-sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+a { text-decoration: none; color: inherit; transition: 0.3s; }
+img { max-width: 100%; display: block; height: auto; }
+button { cursor: pointer; border: none; background: none; font-family: inherit; }
+
+/* --- Typographie --- */
+.nk-title-xl { font-family: var(--nk-font-serif); font-size: 3rem; font-style: italic; line-height: 1.2; }
+.nk-title-lg { font-family: var(--nk-font-serif); font-size: 2rem; font-weight: 400; }
+.nk-title-md { font-family: var(--nk-font-serif); font-size: 1.5rem; }
+.nk-text-body { font-size: 1rem; color: var(--nk-text-light); }
+.nk-price { font-weight: 700; font-size: 0.95rem; letter-spacing: 0.5px; }
+
+/* --- Layout --- */
+.nk-container {
+    max-width: var(--nk-container);
+    margin: 0 auto;
+    padding: 0 var(--nk-spacing-sm);
+}
+
+/* --- Header Sticky --- */
+.nk-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(253, 251, 247, 0.95); /* Semi-transparent */
+    backdrop-filter: blur(5px);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s;
+    padding: var(--nk-spacing-sm) 0;
+}
+.nk-header.is-scrolled { border-bottom-color: var(--nk-border); }
+.nk-nav-flex { display: flex; justify-content: space-between; align-items: center; }
+.nk-logo { font-family: var(--nk-font-serif); font-size: 1.8rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; }
+.nk-menu-desktop { display: none; gap: var(--nk-spacing-md); }
+@media(min-width: 768px) { .nk-menu-desktop { display: flex; } }
+
+/* --- Grille Éditoriale (Le cœur) --- */
+.nk-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Mobile : 2 colonnes */
+    gap: 10px; /* Gouttière fine mobile */
+    margin-bottom: var(--nk-spacing-lg);
+}
+@media(min-width: 768px) {
+    .nk-grid {
+        grid-template-columns: repeat(12, 1fr); /* Desktop : 12 colonnes */
+        gap: var(--nk-spacing-md);
+    }
+}
+
+/* Rhythm: Classes utilitaires pour la grille */
+.nk-col-2 { grid-column: span 1; } /* Mobile default */
+@media(min-width: 768px) {
+    .nk-span-3 { grid-column: span 3; } /* Petit produit */
+    .nk-span-4 { grid-column: span 4; } /* Moyen */
+    .nk-span-6 { grid-column: span 6; } /* Grand visuel */
+    .nk-span-12 { grid-column: span 12; } /* Pleine largeur */
+}
+
+/* --- Carte Produit --- */
+.nk-product-card { position: relative; group: 1; margin-bottom: var(--nk-spacing-md); }
+.nk-product-img-wrapper {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4/5; /* Ratio Portrait Chic */
+}
+.nk-product-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+.nk-product-img-hover {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    object-fit: cover; opacity: 0; transition: opacity 0.4s ease;
+}
+
+/* Hover Effect Desktop */
+@media(hover: hover) {
+    .nk-product-card:hover .nk-product-img-hover { opacity: 1; }
+    .nk-product-card:hover .nk-product-img { transform: scale(1.02); }
+    .nk-quick-add-btn {
+        opacity: 0; transform: translateY(10px); transition: all 0.3s ease;
+    }
+    .nk-product-card:hover .nk-quick-add-btn { opacity: 1; transform: translateY(0); }
+}
+
+/* Quick Add Button */
+.nk-quick-add-btn {
+    position: absolute;
+    bottom: 10px; left: 10px; right: 10px;
+    background: #FFF;
+    color: var(--nk-text-main);
+    padding: 12px;
+    text-align: center;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    /* Mobile : toujours visible ou icône */
+}
+
+.nk-product-info { text-align: center; margin-top: var(--nk-spacing-xs); }
+.nk-product-name { font-size: 1rem; margin-bottom: 4px; }
+.nk-product-price { color: var(--nk-text-light); font-size: 0.9rem; }
+
+/* --- Bloc Ambiance (Break visuel) --- */
+.nk-mood-block {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #F0EFEA;
+    aspect-ratio: 4/5;
+    padding: 20px;
+    text-align: center;
+}
+.nk-mood-text { font-family: var(--nk-font-serif); font-style: italic; font-size: 1.4rem; }
+
+/* --- Slide-in Cart (Tiroir) --- */
+.nk-cart-drawer {
+    position: fixed;
+    top: 0; right: 0; height: 100vh;
+    width: 100%; max-width: 400px;
+    background: #FFF;
+    box-shadow: -5px 0 20px rgba(0,0,0,0.05);
+    z-index: 200;
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex; flex-direction: column;
+}
+.nk-cart-drawer.is-open { transform: translateX(0); }
+.nk-cart-overlay {
+    position: fixed; inset: 0; background: rgba(26, 26, 46, 0.3);
+    z-index: 199; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.nk-cart-overlay.is-open { opacity: 1; pointer-events: auto; }
+
+.nk-cart-header { padding: 20px; border-bottom: 1px solid var(--nk-border); display: flex; justify-content: space-between; align-items: center; }
+.nk-cart-body { flex: 1; overflow-y: auto; padding: 20px; }
+.nk-cart-footer { padding: 20px; background: #FAFAFA; border-top: 1px solid var(--nk-border); }
+
+.nk-btn-primary {
+    display: block; width: 100%;
+    background-color: var(--nk-text-main);
+    color: #FFF;
+    padding: 15px;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    transition: background 0.3s;
+}
+.nk-btn-primary:hover { background-color: #000; }

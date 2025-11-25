@@ -152,7 +152,7 @@ require __DIR__ . '/_header.php';
 <div class="page">
     <div class="page-header">
         <div class="title"><span class="brand">NANOOK</span> · Détail commande</div>
-        <a href="/admin/orders.html" class="back-link">&larr; Retour aux commandes</a>
+        <a href="/admin/orders.php" class="back-link">&larr; Retour aux commandes</a>
     </div>
 
     <div id="message" class="message" style="display:none;"></div>
@@ -287,11 +287,11 @@ require __DIR__ . '/_header.php';
             });
             let data = await res.json();
             if (!data.authenticated) {
-                window.location.href = '/admin/index.html';
+                window.location.href = '/admin/index.php';
             }
         } catch (error) {
             console.error(error);
-            window.location.href = '/admin/index.html';
+            window.location.href = '/admin/index.php';
         }
     }
 
@@ -408,7 +408,7 @@ require __DIR__ . '/_header.php';
             tr.appendChild(tdQty);
 
             let tdUnit = document.createElement('td');
-            tdUnit.textContent = formatPrice(item.unit_price_cents);
+            tdUnit.textContent = formatPrice(item.unit_price);
             tr.appendChild(tdUnit);
 
             let tdLine = document.createElement('td');

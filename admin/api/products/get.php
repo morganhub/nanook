@@ -23,7 +23,7 @@ $stmt = $pdo->prepare(
          slug,
          short_description,
          long_description,
-         price_cents,
+         price,
          stock_quantity,
          allow_preorder_when_oos,
          is_active,
@@ -40,7 +40,7 @@ if (!$product) {
     jsonResponse(['error' => 'not_found'], 404);
 }
 
-$product['price_cents'] = (int)$product['price_cents'];
+$product['price'] = (int)$product['price'];
 $product['stock_quantity'] = (int)$product['stock_quantity'];
 $product['allow_preorder_when_oos'] = (int)$product['allow_preorder_when_oos'];
 $product['is_active'] = (int)$product['is_active'];

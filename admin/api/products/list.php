@@ -69,7 +69,7 @@ $listSql = '
         p.id,
         p.name,
         p.slug,
-        p.price_cents,
+        p.price,
         p.stock_quantity,
         p.allow_preorder_when_oos,
         p.is_active,
@@ -120,7 +120,7 @@ if (!empty($productIds)) {
 
 foreach ($products as &$product) {
     $pid = (int)$product['id'];
-    $product['price_cents'] = (int)$product['price_cents'];
+    $product['price'] = (int)$product['price'];
     $product['stock_quantity'] = (int)$product['stock_quantity'];
     $product['allow_preorder_when_oos'] = (int)$product['allow_preorder_when_oos'];
     $product['is_active'] = (int)$product['is_active'];

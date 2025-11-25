@@ -23,7 +23,7 @@ $name = isset($input['name']) ? trim((string)$input['name']) : '';
 $slug = isset($input['slug']) ? trim((string)$input['slug']) : '';
 $shortDescription = isset($input['short_description']) ? trim((string)$input['short_description']) : '';
 $longDescription = isset($input['long_description']) ? trim((string)$input['long_description']) : '';
-$priceCents = isset($input['price_cents']) ? (int)$input['price_cents'] : 0;
+$priceCents = isset($input['price']) ? (int)$input['price'] : 0;
 $stockQuantity = isset($input['stock_quantity']) ? (int)$input['stock_quantity'] : 0;
 $allowPreorder = !empty($input['allow_preorder_when_oos']) ? 1 : 0;
 $isActive = !empty($input['is_active']) ? 1 : 0;
@@ -60,7 +60,7 @@ try {
                  slug = :slug,
                  short_description = :short_description,
                  long_description = :long_description,
-                 price_cents = :price_cents,
+                 price = :price,
                  stock_quantity = :stock_quantity,
                  allow_preorder_when_oos = :allow_preorder_when_oos,
                  is_active = :is_active,
@@ -73,7 +73,7 @@ try {
             ':slug' => $slug,
             ':short_description' => $shortDescription,
             ':long_description' => $longDescription,
-            ':price_cents' => $priceCents,
+            ':price' => $priceCents,
             ':stock_quantity' => $stockQuantity,
             ':allow_preorder_when_oos' => $allowPreorder,
             ':is_active' => $isActive,
@@ -86,10 +86,10 @@ try {
     } else {
         $stmt = $pdo->prepare(
             'INSERT INTO nanook_products
-            (name, slug, short_description, long_description, price_cents, stock_quantity,
+            (name, slug, short_description, long_description, price, stock_quantity,
              allow_preorder_when_oos, is_active, display_order, created_at, updated_at)
             VALUES
-            (:name, :slug, :short_description, :long_description, :price_cents, :stock_quantity,
+            (:name, :slug, :short_description, :long_description, :price, :stock_quantity,
              :allow_preorder_when_oos, :is_active, :display_order, NOW(), NOW())'
         );
         $stmt->execute([
@@ -97,7 +97,7 @@ try {
             ':slug' => $slug,
             ':short_description' => $shortDescription,
             ':long_description' => $longDescription,
-            ':price_cents' => $priceCents,
+            ':price' => $priceCents,
             ':stock_quantity' => $stockQuantity,
             ':allow_preorder_when_oos' => $allowPreorder,
             ':is_active' => $isActive,

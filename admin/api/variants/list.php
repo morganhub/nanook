@@ -23,7 +23,7 @@ $stmt = $pdo->prepare(
          sku,
          material,
          color,
-         price_cents,
+         price,
          stock_quantity,
          allow_preorder_when_oos,
          is_active,
@@ -39,7 +39,7 @@ $rows = $stmt->fetchAll();
 
 foreach ($rows as &$row) {
     $row['id'] = (int)$row['id'];
-    $row['price_cents'] = $row['price_cents'] !== null ? (int)$row['price_cents'] : null;
+    $row['price'] = $row['price'] !== null ? (int)$row['price'] : null;
     $row['stock_quantity'] = (int)$row['stock_quantity'];
     $row['allow_preorder_when_oos'] = (int)$row['allow_preorder_when_oos'];
     $row['is_active'] = (int)$row['is_active'];
