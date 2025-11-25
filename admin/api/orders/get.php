@@ -21,7 +21,7 @@ $stmt = $pdo->prepare(
          id,
          order_number,
          status,
-         total_amount_cents,
+         total_amount,
          customer_first_name,
          customer_last_name,
          customer_email,
@@ -45,7 +45,7 @@ if (!$order) {
 }
 
 $order['id'] = (int)$order['id'];
-$order['total_amount_cents'] = (int)$order['total_amount_cents'];
+$order['total_amount'] = (int)$order['total_amount'];
 
 $itemStmt = $pdo->prepare(
     'SELECT

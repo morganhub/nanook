@@ -2,9 +2,14 @@
 // index.php
 declare(strict_types=1);
 
-// 1. Chargement de la configuration
+// AFFICHER LES ERREURS (Temporaire pour débugger l'erreur 500)
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+
+// 1. Chargement de l'environnement et de la base de données
 require_once __DIR__ . '/src/config/env.php';
-require_once __DIR__ . '/src/config/database.php';
+require_once __DIR__ . '/src/config/database.php'; // <-- On utilise le fichier PROPRE
 
 // 2. Démarrage de session
 if (session_status() === PHP_SESSION_NONE) {
@@ -14,8 +19,8 @@ if (session_status() === PHP_SESSION_NONE) {
 // 3. Connexion DB
 $pdo = getPdo();
 
-// 4. Chargement des services
+// 4. Services
 require_once __DIR__ . '/src/services/ProductService.php';
 
-// 5. Routage
+// 5. Routeur
 require_once __DIR__ . '/src/config/routes.php';

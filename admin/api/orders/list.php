@@ -87,7 +87,7 @@ $listSql = '
         o.id,
         o.order_number,
         o.status,
-        o.total_amount_cents,
+        o.total_amount,
         o.customer_first_name,
         o.customer_last_name,
         o.customer_email,
@@ -116,7 +116,7 @@ $orders = $listStmt->fetchAll();
 
 foreach ($orders as &$order) {
     $order['id'] = (int)$order['id'];
-    $order['total_amount_cents'] = (int)$order['total_amount_cents'];
+    $order['total_amount'] = (int)$order['total_amount'];
     $order['items_count'] = (int)$order['items_count'];
 }
 unset($order);

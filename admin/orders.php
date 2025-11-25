@@ -372,7 +372,7 @@ require __DIR__ . '/_header.php';
             tr.appendChild(tdCity);
 
             let tdTotal = document.createElement('td');
-            tdTotal.textContent = formatPrice(o.total_amount_cents);
+            tdTotal.textContent = formatPrice(o.total_amount);
             tr.appendChild(tdTotal);
 
             let tdStatus = document.createElement('td');

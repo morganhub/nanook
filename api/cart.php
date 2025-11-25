@@ -2,6 +2,7 @@
 // public/api/cart.php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../src/config/database.php';
 require_once __DIR__ . '/../src/services/CartService.php';
 
 header('Content-Type: application/json');

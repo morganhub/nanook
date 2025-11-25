@@ -61,7 +61,6 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .nk-nav-flex { display: flex; justify-content: space-between; align-items: center; }
 .nk-logo { font-family: var(--nk-font-serif); font-size: 1.8rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; }
 .nk-menu-desktop { display: none; gap: var(--nk-spacing-md); }
-@media(min-width: 768px) { .nk-menu-desktop { display: flex; } }
 
 /* --- Grille Éditoriale (Le cœur) --- */
 .nk-grid {
@@ -190,7 +189,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 /* En Desktop, on cache le burger et on affiche le menu texte */
 @media (min-width: 992px) {
     .nk-burger { display: none; }
-    .nk-menu-desktop { display: flex; gap: 30px; }
+    .nk-menu-desktop { display: none; gap: 30px; }
 }
 
 /* En Mobile, on cache le menu texte */
@@ -389,6 +388,100 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     position: absolute;
     left: 0;
     color: #ccc;
+}
+.btn-glass {
+    display: inline-block;
+    padding: 10px 18px;
+    border-radius: 14px;
+    background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.18),
+            rgba(255, 255, 255, 0.06)
+    );
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    box-shadow:
+            0 18px 35px rgba(15, 23, 42, 0.35),
+            0 0 0 1px rgba(255, 255, 255, 0.06);
+    color: #111827;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+    transition:
+            transform 0.18s ease-out,
+            box-shadow 0.18s ease-out,
+            background 0.18s ease-out,
+            color 0.18s ease-out;
+}
+
+.btn-glass:hover {
+    transform: translateY(-2px) scale(1.01);
+    background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.35),
+            rgba(255, 255, 255, 0.14)
+    );
+    box-shadow:
+            0 22px 40px rgba(15, 23, 42, 0.4),
+            0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.btn-glass:active {
+    transform: translateY(0) scale(0.99);
+    box-shadow:
+            0 10px 22px rgba(15, 23, 42, 0.35),
+            0 0 0 1px rgba(255, 255, 255, 0.24);
+}
+
+.btn-glass:focus-visible {
+    outline: 2px solid rgba(59, 130, 246, 0.9);
+    outline-offset: 3px;
+}
+.hero-title {
+    margin: 0 0 24px;
+    font-size: 3rem;
+    line-height: 1.1;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #f9fafb;
+    position: relative;
+    display: inline-block;
+    padding-bottom: 10px;
+    text-shadow: 0 10px 35px rgba(0, 0, 0, 0.75);
+}
+
+.hero-title::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    width: 68%;
+    border-radius: 999px;
+}
+
+.hero-title::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -10px;
+    height: 1px;
+    width: 40%;
+    background: linear-gradient(90deg, rgba(249, 115, 22, 0.2), transparent);
+    opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.2rem;
+        letter-spacing: 0.06em;
+    }
+    .nk-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Mobile Layout Adjustments */

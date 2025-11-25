@@ -349,7 +349,7 @@ require __DIR__ . '/_header.php';
 
         orderNumber.textContent = order.order_number;
         orderDate.textContent = order.created_at || '';
-        orderTotal.textContent = formatPrice(order.total_amount_cents);
+        orderTotal.textContent = formatPrice(order.total_amount);
         orderShippingPref.textContent = shippingPrefLabel(order.shipping_preference);
 
         let fullName = order.customer_first_name + ' ' + order.customer_last_name;

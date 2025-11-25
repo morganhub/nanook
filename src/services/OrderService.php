@@ -24,19 +24,13 @@ function processCheckout(array $postData)
         $orderNumber = 'CMD-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -4));
 
         // 1. Insertion Commande
-        // Attention : Si vos colonnes s'appellent encore total_amount_cents en base, renommez-les en total_amount
-        // ou assurez-vous qu'elles acceptent les DECIMAL. Ici je pars du principe que c'est DECIMAL (Euros).
+        // Note : On utilise bien 'total_amount' (DECIMAL)
         $stmt = $pdo->prepare("
             INSERT INTO nanook_orders 
-            (order_number, status, total_amount_cents, customer_first_name, customer_last_name, customer_email, shipping_address_line1, shipping_address_line2, shipping_postal_code, shipping_city, shipping_preference, created_at, updated_at)
+            (order_number, status, total_amount, customer_first_name, customer_last_name, customer_email, shipping_address_line1, shipping_address_line2, shipping_postal_code, shipping_city, shipping_preference, created_at, updated_at)
             VALUES 
             (:num, 'pending', :total, :fname, :lname, :email, :add1, :add2, :zip, :city, :pref, NOW(), NOW())
         ");
-
-        // Note: Le champ s'appelle total_amount_cents dans votre dump initial.
-        // Si vous l'avez passé en DECIMAL pour stocker des euros, c'est bon.
-        // Sinon, il faudrait faire $cart['total'] * 100 si c'est resté un INT.
-        // Vu votre demande, je considère que c'est DECIMAL.
 
         $stmt->execute([
             ':num' => $orderNumber,
@@ -54,9 +48,10 @@ function processCheckout(array $postData)
         $orderId = $pdo->lastInsertId();
 
         // 2. Insertion Items
+        // Note : On utilise 'unit_price' et 'line_total' (DECIMAL) au lieu de _cents
         $stmtItem = $pdo->prepare("
             INSERT INTO nanook_order_items 
-            (order_id, product_id, variant_id, product_name, variant_name, unit_price, quantity, line_total_cents)
+            (order_id, product_id, variant_id, product_name, variant_name, unit_price, quantity, line_total)
             VALUES 
             (:oid, :pid, :vid, :pname, :vname, :uprice, :qty, :ltotal)
         ");
@@ -74,13 +69,13 @@ function processCheckout(array $postData)
             ]);
         }
 
-        // 3. Log de l'email (pour historique admin)
+        // 3. Log de l'email
         $stmtLog = $pdo->prepare("INSERT INTO nanook_email_logs (order_id, recipient_email, subject, sent_at) VALUES (?, ?, ?, NOW())");
         $stmtLog->execute([$orderId, $postData['email'], "Confirmation de commande $orderNumber"]);
 
         $pdo->commit();
 
-        // 4. Envoi Réel des Emails
+        // 4. Envoi Email
         sendOrderEmails($postData, $cart, $orderNumber);
 
         // 5. Reset Panier
@@ -92,6 +87,7 @@ function processCheckout(array $postData)
 
     } catch (Exception $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
+        // En prod, afficher un message générique, mais ici on affiche l'erreur pour débugger si besoin
         die("Erreur technique lors de la commande : " . $e->getMessage());
     }
 }
@@ -99,17 +95,21 @@ function processCheckout(array $postData)
 function sendOrderEmails($customer, $cart, $orderNumber)
 {
     $toClient = $customer['email'];
-    $toAdmin = 'morgan@hotmail.com'; // Votre email
+    $toAdmin = 'ornella1984@hotmail.com'; // À personnaliser
 
     $subject = "Confirmation de commande Nanook - $orderNumber";
 
     $itemsHtml = "<ul>";
     foreach ($cart['items'] as $item) {
-        $itemsHtml .= "<li><strong>{$item['name']}</strong> " . ($item['variant_name'] ? "({$item['variant_name']})" : "") . " x{$item['quantity']} - " . number_format($item['line_total'], 2) . " €</li>";
+        $price = number_format((float)$item['line_total'], 2, ',', ' ');
+        $name = htmlspecialchars($item['name']);
+        $variant = $item['variant_name'] ? " (" . htmlspecialchars($item['variant_name']) . ")" : "";
+        $itemsHtml .= "<li><strong>{$name}</strong>{$variant} x{$item['quantity']} - {$price} €</li>";
     }
     $itemsHtml .= "</ul>";
 
     $deliveryText = ($customer['shipping_pref'] === 'christmas') ? 'Avant Noël' : 'Début 2026';
+    $total = number_format((float)$cart['total'], 2, ',', ' ');
 
     $message = "
     <html>
@@ -121,7 +121,7 @@ function sendOrderEmails($customer, $cart, $orderNumber)
         <div style='background:#f9f9f9; padding:15px; margin:20px 0;'>
             <h3>Récapitulatif</h3>
             $itemsHtml
-            <p style='font-size:1.2em; font-weight:bold;'>Total : " . number_format($cart['total'], 2) . " €</p>
+            <p style='font-size:1.2em; font-weight:bold;'>Total : {$total} €</p>
             <p><strong>Livraison souhaitée :</strong> $deliveryText</p>
             <p><strong>Adresse :</strong><br>
             {$customer['address1']}<br>
@@ -138,10 +138,7 @@ function sendOrderEmails($customer, $cart, $orderNumber)
     $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
     $headers .= "From: Nanook Paris <no-reply@nanook.paris>" . "\r\n";
 
-    // Envoi Client
+    // Envoi
     mail($toClient, $subject, $message, $headers);
-
-    // Envoi Admin (Copie)
-    $subjectAdmin = "[Nouvelle Commande] $orderNumber - " . number_format($cart['total'], 2) . " €";
-    mail($toAdmin, $subjectAdmin, $message, $headers);
+    mail($toAdmin, "[Nouvelle Commande] $orderNumber - $total €", $message, $headers);
 }

@@ -53,44 +53,28 @@ if (preg_match('#^/p/([a-z0-9-]+)$#', $requestUri, $matches)) {
     $slug = $matches[1];
     $_GET['slug'] = $slug;
 
-    // On utilise le service pour avoir toutes les infos (images, prix, stock)
-    $productSEO = getProductBySlug($pdo, $slug);
+    // On récupère le produit UNE SEULE FOIS ici
+    $product = getProductBySlug($pdo, $slug); // J'ai renommé $productSEO en $product pour simplifier
 
-    if ($productSEO) {
+    if ($product) {
         // Optimisation SEO
-        $pageTitle = htmlspecialchars($productSEO['name']) . ' | Nanook Paris';
-        // Création d'une description propre sans HTML
-        $descRaw = !empty($productSEO['short_description']) ? $productSEO['short_description'] : ($productSEO['long_description'] ?? '');
+        $pageTitle = htmlspecialchars($product['name']) . ' | Nanook Paris';
+        $descRaw = !empty($product['short_description']) ? $product['short_description'] : ($product['long_description'] ?? '');
         $metaDescription = substr(strip_tags($descRaw), 0, 160) . '...';
 
-        // Image pour les réseaux sociaux
-        if (!empty($productSEO['images'][0]['file_path'])) {
-            $ogImage = '/storage/product_images/' . $productSEO['images'][0]['file_path'];
+        if (!empty($product['images'][0]['file_path'])) {
+            $ogImage = '/storage/product_images/' . $product['images'][0]['file_path'];
         }
 
-        // Schema.org Product (Indispensable pour Google Shopping)
-        $jsonLd = [
-            "@context" => "https://schema.org/",
-            "@type" => "Product",
-            "name" => $productSEO['name'],
-            "image" => "https://nanook.paris" . $ogImage,
-            "description" => $metaDescription,
-            "brand" => ["@type" => "Brand", "name" => "Nanook"],
-            "offers" => [
-                "@type" => "Offer",
-                "priceCurrency" => "EUR",
-                "price" => $productSEO['price_cents'] / 100,
-                "availability" => ($productSEO['stock_quantity'] > 0 || $productSEO['allow_preorder_when_oos'])
-                    ? "https://schema.org/InStock"
-                    : "https://schema.org/OutOfStock"
-            ]
-        ];
+        // JSON-LD... (Garder votre code existant ici)
 
+        // On charge la vue qui utilisera la variable $product déjà remplie !
         $pageContent = $viewPath . 'product.php';
         require $layoutPath;
         exit;
     }
 }
+
 if ($requestUri === '/checkout') {
     $pageTitle = 'Validation de commande | Nanook';
     $pageContent = $viewPath . 'checkout.php';

@@ -1,15 +1,17 @@
 <?php
-require_once __DIR__ . '/../../services/ProductService.php'; // On charge le service
+// src/views/pages/home.php
 
-// Connexion DB (via env.php qui est chargé dans index.php)
+// On s'assure que le service est chargé (si index.php ne l'a pas fait, ceinture et bretelles)
+require_once __DIR__ . '/../../services/ProductService.php';
+
 $pdo = getPdo();
 $products = getHomeProducts($pdo);
 ?>
 
 <section style="height: 80vh; background: url('/assets/img/hero-nanook.jpg') center/cover no-repeat; display:flex; align-items:center; justify-content:center; margin-bottom:60px;">
     <div style="text-align:center; color:#FFF;">
-        <h1 class="nk-title-xl" style="margin-bottom:20px;">L'art du temps long</h1>
-        <a href="#shop" class="nk-btn-primary" style="background:#FFF; color:#222; display:inline-block; width:auto; padding:15px 40px;">Découvrir</a>
+        <h1 class="hero-title" style="margin-bottom:20px;"> </h1>
+        <a href="#shop" class="nk-btn-primary btn-glass"  >Découvrir</a>
     </div>
 </section>
 
@@ -22,10 +24,12 @@ $products = getHomeProducts($pdo);
     <div class="nk-grid">
         <?php foreach ($products as $index => $p): ?>
             <?php
-            // Alternance de taille (Rhythme) : tous les 3 items, on en met un grand
+            // Alternance de taille (Rhythme)
             $gridClass = ($index % 4 === 0 && $index !== 0) ? 'nk-span-6' : 'nk-span-3';
             $imgSrc = $p['image_path'] ? '/storage/product_images/' . $p['image_path'] : '/assets/img/placeholder.jpg';
-            $price = number_format($p['price_cents'] / 100, 2, ',', ' ') . ' €';
+
+            // CORRECTION ICI : On utilise 'price' directement sans diviser par 100
+            $price = number_format((float)$p['price'], 2, ',', ' ') . ' €';
             ?>
 
             <a href="/p/<?= htmlspecialchars($p['slug']) ?>" class="nk-product-card <?= $gridClass ?>">
