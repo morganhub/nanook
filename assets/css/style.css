@@ -207,7 +207,9 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     display: flex;
     flex-direction: column;
 }
-
+.nk-product-visuals {
+    padding-bottom:5rem;
+}
 @media (min-width: 992px) {
     .nk-product-layout {
         display: grid;

@@ -62,7 +62,7 @@ if (empty($cartData['items'])) {
                     <input type="radio" name="shipping_pref" value="christmas" required checked>
                     <div>
                         <div style="font-weight: 700;">Avant Noël</div>
-                        <div style="font-size: 0.9rem; color: #666;">Nous ferons le maximum pour que ce soit sous le sapin.</div>
+                        <div style="font-size: 0.9rem; color: #666;">Je ferai le maximum pour que ce soit sous le sapin 😊</div>
                     </div>
                 </label>
 

@@ -50,9 +50,9 @@ $products = getHomeProducts($pdo);
             </a>
 
             <?php if ($index === 1): ?>
-                <div class="nk-mood-block nk-span-3">
-                    <p class="nk-mood-text">"La matière commande, la main obéit."</p>
-                </div>
+<!--                <div class="nk-mood-block nk-span-3">-->
+<!--                    <p class="nk-mood-text">"La matière commande, la main obéit."</p>-->
+<!--                </div>-->
             <?php endif; ?>
 
         <?php endforeach; ?>

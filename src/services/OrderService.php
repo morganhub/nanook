@@ -129,7 +129,7 @@ function sendOrderEmails($customer, $cart, $orderNumber)
             </p>
         </div>
         
-        <p>À très vite,<br>L'équipe Nanook</p>
+        <p>À très vite,<br>Nanook</p>
     </body>
     </html>
     ";
