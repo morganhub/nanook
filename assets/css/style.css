@@ -175,3 +175,241 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     transition: background 0.3s;
 }
 .nk-btn-primary:hover { background-color: #000; }
+
+/* --- FIX HEADER & BURGER --- */
+.nk-burger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 110;
+}
+
+/* En Desktop, on cache le burger et on affiche le menu texte */
+@media (min-width: 992px) {
+    .nk-burger { display: none; }
+    .nk-menu-desktop { display: flex; gap: 30px; }
+}
+
+/* En Mobile, on cache le menu texte */
+@media (max-width: 991px) {
+    .nk-menu-desktop { display: none; }
+}
+
+/* --- PAGE PRODUIT "HERMÈS STYLE" --- */
+.nk-product-page {
+    padding-top: 20px;
+    background-color: var(--nk-bg-color);
+}
+
+.nk-product-layout {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 992px) {
+    .nk-product-layout {
+        display: grid;
+        grid-template-columns: 60% 1fr; /* 60% Images, Reste Sidebar */
+        gap: 60px;
+        align-items: start;
+    }
+}
+
+/* Colonne Gauche : Images */
+.nk-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.nk-image-wrapper img {
+    width: 100%;
+    height: auto;
+    display: block;
+    /* Petit fond gris si l'image est PNG transparent */
+    background-color: #F5F5F5;
+}
+
+/* Storytelling sous les images */
+.nk-product-story {
+    margin-top: 80px;
+    text-align: center;
+    padding: 0 20px;
+}
+.nk-story-title {
+    font-family: var(--nk-font-serif);
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 30px;
+    color: #999; /* Titre discret style Hermès */
+}
+.nk-story-text {
+    font-family: var(--nk-font-serif); /* Serif pour le texte long */
+    font-size: 1.1rem;
+    line-height: 1.8;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Colonne Droite : Sidebar Sticky avec Glassmorphism */
+.nk-product-sidebar-wrapper {
+    position: relative;
+    height: 100%;
+}
+
+.nk-product-sidebar {
+    background: rgba(255, 255, 255, 0.85); /* Blanc semi-transparent */
+    backdrop-filter: blur(12px);            /* Effet Glass */
+    -webkit-backdrop-filter: blur(12px);
+    padding: 40px;
+    border: 1px solid rgba(0,0,0,0.05);
+
+    /* Sticky behavior */
+    position: sticky;
+    top: 100px; /* Décalage par rapport au header */
+}
+
+.nk-product-title {
+    font-family: var(--nk-font-serif);
+    font-size: 1.8rem;
+    font-weight: 400;
+    margin: 0 0 10px 0;
+    line-height: 1.2;
+}
+
+.nk-product-price {
+    font-family: var(--nk-font-sans);
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: var(--nk-text-main);
+}
+
+.nk-product-desc-short {
+    font-size: 0.95rem;
+    color: var(--nk-text-light);
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+/* Variantes carrées */
+.nk-variant-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.nk-variant-option input { display: none; }
+.nk-variant-box {
+    display: block;
+    padding: 10px 15px;
+    border: 1px solid #E5E5E5;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    min-width: 50px;
+    text-align: center;
+    background: #FFF;
+}
+.nk-variant-option input:checked + .nk-variant-box {
+    border-color: var(--nk-text-main);
+    background: var(--nk-text-main);
+    color: #FFF;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+.nk-variant-option.disabled { opacity: 0.5; pointer-events: none; text-decoration: line-through; }
+
+/* Actions & Quantité */
+.nk-form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+.nk-qty-wrapper {
+    display: flex;
+    border: 1px solid var(--nk-border);
+    background: #FFF;
+}
+.nk-qty-wrapper button {
+    width: 40px;
+    font-size: 1.2rem;
+    color: var(--nk-text-main);
+}
+.nk-qty-wrapper input {
+    width: 40px;
+    border: none;
+    text-align: center;
+    font-weight: 700;
+    -moz-appearance: textfield;
+}
+
+.nk-btn-add {
+    flex: 1;
+    background-color: #333; /* Noir profond */
+    color: #FFF;
+    padding: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    transition: background 0.3s;
+}
+.nk-btn-add:hover {
+    background-color: #000;
+}
+
+.nk-stock-warning {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: #C18C5D; /* Accent Terracotta */
+    font-style: italic;
+}
+
+.nk-product-meta {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+.nk-product-meta ul {
+    list-style: none;
+    padding: 0;
+}
+.nk-product-meta li {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 8px;
+    position: relative;
+    padding-left: 15px;
+}
+.nk-product-meta li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #ccc;
+}
+
+/* Mobile Layout Adjustments */
+.nk-mobile-header { display: none; }
+
+@media (max-width: 991px) {
+    .nk-mobile-header {
+        display: block;
+        padding: 20px;
+        text-align: center;
+    }
+    .nk-desktop-header { display: none; }
+
+    .nk-product-sidebar {
+        border: none;
+        padding: 20px;
+        background: #FFF; /* Pas de glass sur mobile fond blanc */
+    }
+
+    .nk-gallery { gap: 2px; }
+
+    /* Sticky bottom bar simulation for add to cart on mobile if needed */
+    /* Pour l'instant on laisse en flux normal comme sur la capture mobile Hermès */
+}

@@ -3,12 +3,11 @@
 
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-// --- Valeurs SEO par défaut (Homepage / Fallback) ---
+// --- 1. Variables SEO par défaut (Homepage) ---
 $pageTitle = 'Nanook Paris | Maroquinerie Artisanale & Objets Uniques';
 $metaDescription = 'Découvrez Nanook Paris : des créations artisanales en cuir, fabriquées à la main avec passion. Sacs, accessoires et objets lifestyle.';
-$ogImage = '/assets/img/hero-nanook.jpg'; // Image par défaut pour le partage
-$canonicalUrl = 'https://nanook.paris' . $requestUri; // Adapter avec le vrai domaine
-$pageContent = null; // Sera défini par les routes
+$ogImage = '/assets/img/hero-nanook.jpg'; // Image par défaut pour le partage Facebook/WhatsApp
+$canonicalUrl = 'https://nanook.paris' . $requestUri;
 $jsonLd = [
     "@context" => "https://schema.org",
     "@type" => "WebSite",
@@ -16,67 +15,67 @@ $jsonLd = [
     "url" => "https://nanook.paris"
 ];
 
-// Chemins
+// Chemins vers les vues
 $viewPath = __DIR__ . '/../views/pages/';
 $layoutPath = __DIR__ . '/../views/layouts/base.php';
+$pageContent = null; // Sera défini ci-dessous
 
-// --- ROUTAGE ---
+// --- 2. Routage & Logique ---
 
-// 1. Homepage
+// Homepage
 if ($requestUri === '/' || $requestUri === '/index.php') {
     $pageContent = $viewPath . 'home.php';
+    require $layoutPath;
+    exit;
 }
 
-// 2. Page Catégorie (Ex: /c/sacs)
-elseif (preg_match('#^/c/([a-z0-9-]+)$#', $requestUri, $matches)) {
+// Page Catégorie (ex: /c/sacs)
+if (preg_match('#^/c/([a-z0-9-]+)$#', $requestUri, $matches)) {
     $slug = $matches[1];
     $_GET['slug'] = $slug;
 
-    // Récupération infos catégorie pour SEO (SQL rapide ou Service)
+    // Récupération rapide du nom de la catégorie pour le SEO
     $stmt = $pdo->prepare("SELECT name FROM nanook_categories WHERE slug = :slug");
     $stmt->execute([':slug' => $slug]);
     $cat = $stmt->fetch();
 
     if ($cat) {
         $pageTitle = htmlspecialchars($cat['name']) . ' | Collection Nanook';
-        $metaDescription = 'Explorez notre collection de ' . htmlspecialchars($cat['name']) . '. Fait main à Paris.';
+        $metaDescription = 'Explorez notre collection de ' . htmlspecialchars($cat['name']) . '. Pièces uniques faites main à Paris.';
         $pageContent = $viewPath . 'category.php';
-    } else {
-        // Catégorie inconnue => 404 gérée plus bas
-        $pageContent = null;
+        require $layoutPath;
+        exit;
     }
 }
 
-// 3. Fiche Produit (Ex: /p/vide-poche-cuir)
-elseif (preg_match('#^/p/([a-z0-9-]+)$#', $requestUri, $matches)) {
+// Fiche Produit (ex: /p/vide-poche-cuir)
+if (preg_match('#^/p/([a-z0-9-]+)$#', $requestUri, $matches)) {
     $slug = $matches[1];
     $_GET['slug'] = $slug;
 
-    // On utilise le service existant pour récupérer les infos SEO
+    // On utilise le service pour avoir toutes les infos (images, prix, stock)
     $productSEO = getProductBySlug($pdo, $slug);
 
     if ($productSEO) {
+        // Optimisation SEO
         $pageTitle = htmlspecialchars($productSEO['name']) . ' | Nanook Paris';
-        // Description courte ou tronquée de la longue
-        $descRaw = !empty($productSEO['short_description']) ? $productSEO['short_description'] : $productSEO['long_description'];
+        // Création d'une description propre sans HTML
+        $descRaw = !empty($productSEO['short_description']) ? $productSEO['short_description'] : ($productSEO['long_description'] ?? '');
         $metaDescription = substr(strip_tags($descRaw), 0, 160) . '...';
 
-        // Image principale pour Facebook/Twitter/WhatsApp
+        // Image pour les réseaux sociaux
         if (!empty($productSEO['images'][0]['file_path'])) {
             $ogImage = '/storage/product_images/' . $productSEO['images'][0]['file_path'];
         }
 
-        // Schema.org Produit (Crucial pour Google Shopping / Rich Snippets)
+        // Schema.org Product (Indispensable pour Google Shopping)
         $jsonLd = [
             "@context" => "https://schema.org/",
             "@type" => "Product",
             "name" => $productSEO['name'],
-            "image" => "https://nanook.paris" . $ogImage, // URL absolue requise
+            "image" => "https://nanook.paris" . $ogImage,
             "description" => $metaDescription,
-            "brand" => [
-                "@type" => "Brand",
-                "name" => "Nanook"
-            ],
+            "brand" => ["@type" => "Brand", "name" => "Nanook"],
             "offers" => [
                 "@type" => "Offer",
                 "priceCurrency" => "EUR",
@@ -88,28 +87,37 @@ elseif (preg_match('#^/p/([a-z0-9-]+)$#', $requestUri, $matches)) {
         ];
 
         $pageContent = $viewPath . 'product.php';
-    } else {
-        $pageContent = null; // 404
+        require $layoutPath;
+        exit;
     }
 }
+if ($requestUri === '/checkout') {
+    $pageTitle = 'Validation de commande | Nanook';
+    $pageContent = $viewPath . 'checkout.php';
+    require $layoutPath;
+    exit;
+}
 
-// 4. Panier & Checkout
-elseif ($requestUri === '/panier') {
+if ($requestUri === '/checkout/process' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_once __DIR__ . '/../services/OrderService.php';
+    processCheckout($_POST); // Gère la logique et redirige
+    exit;
+}
+// Pages Statiques (Panier, Confirmation)
+if ($requestUri === '/panier') {
     $pageTitle = 'Votre Panier | Nanook';
     $pageContent = $viewPath . 'cart.php';
+    require $layoutPath;
+    exit;
 }
-elseif ($requestUri === '/confirmation') {
+if ($requestUri === '/confirmation') {
     $pageTitle = 'Merci pour votre commande | Nanook';
     $pageContent = $viewPath . 'success.php';
+    require $layoutPath;
+    exit;
 }
 
-// --- RENDU FINAL ---
-
-if ($pageContent && file_exists($pageContent)) {
-    require $layoutPath; // On charge le Layout global qui utilisera $pageTitle, $jsonLd...
-} else {
-    http_response_code(404);
-    $pageTitle = 'Page Introuvable';
-    // Créer un views/pages/404.php serait idéal
-    echo "<div style='text-align:center; padding:100px; font-family:sans-serif;'>Erreur 404 : Cette page n'existe pas. <br><a href='/'>Retour à l'accueil</a></div>";
-}
+// 404 - Not Found
+http_response_code(404);
+$pageTitle = 'Page Introuvable';
+echo "<h1>Erreur 404</h1><p>Cette page n'existe pas.</p>"; // À remplacer par une vraie vue 404

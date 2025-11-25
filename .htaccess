@@ -1,16 +1,23 @@
-# public/.htaccess
+# .htaccess racine
 
-# Activation du moteur de réécriture
+# Désactiver l'affichage des dossiers
+Options -Indexes
+
+# Activer la réécriture
 RewriteEngine On
 
-# Désactive le "content negotiation" (évite des conflits si tu as un dossier "contact" et un fichier "contact.php")
-Options -MultiViews
+# Définir la base (important chez certains hébergeurs)
+RewriteBase /
 
-# Si le fichier demandé existe réellement (image, css, js...), on le sert directement
-RewriteCond %{REQUEST_FILENAME} !-f
+# --- RÈGLES DE ROUTAGE ---
 
-# Si le dossier demandé existe réellement (ex: /admin/), on le sert directement
-RewriteCond %{REQUEST_FILENAME} !-d
+# 1. Si c'est un fichier existant (image, css, js), on ne touche pas
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
 
-# Pour tout le reste, on envoie vers index.php qui gérera le routing
-RewriteRule ^ index.php [QSA,L]
+# 2. Si c'est un dossier existant (ex: admin/), on ne touche pas
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# 3. Tout le reste est redirigé vers index.php
+RewriteRule ^(.*)$ index.php [QSA,L]

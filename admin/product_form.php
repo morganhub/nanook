@@ -284,7 +284,14 @@ require __DIR__ . '/_header.php';
                     <label for="priceInput">Prix (en euros)</label>
                 </div>
                 <div class="field-cell">
-                    <input type="number" id="priceInput" min="0" step="1" required>
+                    <input
+                            type="number"
+                            id="priceInput"
+                            min="0"
+                            step="0.01"
+                            inputmode="decimal"
+                            required
+                    >
                 </div>
 
                 <div class="label-cell">
@@ -425,7 +432,13 @@ require __DIR__ . '/_header.php';
                         </div>
                         <div>
                             <label for="variantPriceInput">Prix (centimes, vide = prix produit)</label>
-                            <input type="number" id="variantPriceInput" min="0" step="1">
+                            <input
+                                    type="number"
+                                    id="variantPriceInput"
+                                    min="0"
+                                    step="0.01"
+                                    inputmode="decimal"
+                            >
                         </div>
                         <div>
                             <label for="variantStockInput">Stock</label>
@@ -629,6 +642,26 @@ require __DIR__ . '/_header.php';
     let customizations = [];
     let currentCustomizationOptions = [];
 
+    function parsePrice(value) {
+        if (value === null || value === undefined) {
+            return 0;
+        }
+        let str = String(value).trim();
+        if (!str) {
+            return 0;
+        }
+        // accepter "12,34" et "12.34"
+        str = str.replace(',', '.');
+
+        let num = Number(str);
+        if (Number.isNaN(num)) {
+            return 0;
+        }
+
+        // on limite à 2 décimales
+        return Math.round(num * 100) / 100;
+    }
+
     function showMessage(text, type = 'error') {
         if (!text) {
             messageEl.style.display = 'none';
@@ -799,7 +832,7 @@ require __DIR__ . '/_header.php';
             slug: slugInput.value.trim(),
             short_description: shortDescriptionInput.value.trim(),
             long_description: longDescriptionInput.value.trim(),
-            price: parseInt(priceInput.value, 10) || 0,
+            price: parsePrice(priceInput.value), // <—
             stock_quantity: parseInt(stockInput.value, 10) || 0,
             allow_preorder_when_oos: allowPreorderInput.checked ? 1 : 0,
             is_active: isActiveInput.checked ? 1 : 0,
@@ -1054,7 +1087,7 @@ require __DIR__ . '/_header.php';
             if (v.price === null || typeof v.price === 'undefined') {
                 tdPrice.textContent = '—';
             } else {
-                let euros = (v.price / 100).toFixed(2);
+                let euros = parsePrice(v.price).toFixed(2);
                 tdPrice.textContent = euros + ' €';
             }
             tr.appendChild(tdPrice);
@@ -1153,7 +1186,9 @@ require __DIR__ . '/_header.php';
             sku: variantSkuInput.value.trim(),
             material: variantMaterialInput.value.trim(),
             color: variantColorInput.value.trim(),
-            price: variantPriceInput.value === '' ? null : (parseInt(variantPriceInput.value, 10) || 0),
+            price: variantPriceInput.value === ''
+                ? null
+                : parsePrice(variantPriceInput.value),
             stock_quantity: parseInt(variantStockInput.value, 10) || 0,
             allow_preorder_when_oos: variantAllowPreorderInput.checked ? 1 : 0,
             is_active: variantIsActiveInput.checked ? 1 : 0,
@@ -1347,7 +1382,7 @@ require __DIR__ . '/_header.php';
             tr.appendChild(tdLabel);
 
             let tdPrice = document.createElement('td');
-            let euros = (opt.price_delta_cents / 100).toFixed(2);
+            let euros = parsePrice(opt.price_delta).toFixed(2);
             tdPrice.textContent = euros === '0.00' ? '—' : ('+' + euros + ' €');
             tr.appendChild(tdPrice);
 
@@ -1376,13 +1411,15 @@ require __DIR__ . '/_header.php';
         if (!label) {
             return;
         }
-        let priceStr = window.prompt('Supplément (en centimes, laissez vide pour 0) :', '');
-        let price = priceStr === null || priceStr === '' ? 0 : (parseInt(priceStr, 10) || 0);
+        let priceStr = window.prompt('Supplément (en euros, ex: 4.50 ou 4,50) :', '');
+        let price = priceStr === null || priceStr.trim() === ''
+            ? 0
+            : parsePrice(priceStr);
         currentCustomizationOptions.push({
             id: null,
             label: label,
             description: null,
-            price_delta_cents: price,
+            price_delta: price,
             display_order: currentCustomizationOptions.length
         });
         renderOptions();
@@ -1453,7 +1490,7 @@ require __DIR__ . '/_header.php';
                 id: opt.id || undefined,
                 label: opt.label,
                 description: opt.description || null,
-                price_delta_cents: opt.price_delta_cents || 0,
+                price_delta: opt.price_delta || 0,
                 display_order: opt.display_order || 0
             };
             try {

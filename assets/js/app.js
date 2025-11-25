@@ -1,35 +1,93 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    /* --- 1. Gestion du Panier Tiroir --- */
+    /* --- 1. Variables Globales UI --- */
     const cartDrawer = document.getElementById('cartDrawer');
     const cartOverlay = document.getElementById('cartOverlay');
     const cartTrigger = document.getElementById('cartTrigger');
     const cartClose = document.getElementById('cartClose');
     const cartCountEl = document.getElementById('cartCount');
     const cartBody = document.getElementById('cartBody');
+    const cartTotal = document.getElementById('cartTotal');
 
+    /* --- 2. Fonctions du Panier (Drawer) --- */
     function openCart() {
-        if(cartDrawer && cartOverlay) {
+        if (cartDrawer && cartOverlay) {
             cartDrawer.classList.add('is-open');
             cartOverlay.classList.add('is-open');
         }
     }
 
     function closeCart() {
-        if(cartDrawer && cartOverlay) {
+        if (cartDrawer && cartOverlay) {
             cartDrawer.classList.remove('is-open');
             cartOverlay.classList.remove('is-open');
         }
     }
 
-    if(cartTrigger) cartTrigger.addEventListener('click', openCart);
-    if(cartClose) cartClose.addEventListener('click', closeCart);
-    if(cartOverlay) cartOverlay.addEventListener('click', closeCart);
+    if (cartTrigger) cartTrigger.addEventListener('click', openCart);
+    if (cartClose) cartClose.addEventListener('click', closeCart);
+    if (cartOverlay) cartOverlay.addEventListener('click', closeCart);
 
+    /* --- 3. Logique API (Communication Serveur) --- */
+    async function updateCart(action, payload = {}) {
+        try {
+            // Appel AJAX vers le fichier PHP à la racine
+            const res = await fetch('/api/cart.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action, ...payload })
+            });
+            const data = await res.json();
 
-    /* --- 2. Quick Add (Ajout Rapide depuis la Grille) --- */
+            if (data.success) {
+                renderCart(data.cart); // Mise à jour visuelle
+                if (action === 'add') openCart(); // Ouvre le tiroir après un ajout
+            } else {
+                console.error("Erreur serveur:", data.message);
+            }
+        } catch (e) {
+            console.error("Erreur réseau panier:", e);
+        }
+    }
+
+    /* --- 4. Rendu Visuel du Panier (DOM) --- */
+    function renderCart(cart) {
+        // 1. Compteur Header
+        if (cartCountEl) cartCountEl.innerText = cart.count;
+
+        // 2. Liste des produits
+        if (cartBody) {
+            if (cart.items.length === 0) {
+                cartBody.innerHTML = '<p style="text-align:center; color:#888; margin-top:50px;">Votre panier est vide.</p>';
+            } else {
+                cartBody.innerHTML = cart.items.map(item => `
+                    <div style="display:flex; gap:10px; margin-bottom:15px; border-bottom:1px solid #f0f0f0; padding-bottom:10px;">
+                        <div style="width:60px; height:80px; background:#eee; overflow:hidden; flex-shrink:0;">
+                           <img src="/assets/img/placeholder.jpg" style="width:100%; height:100%; object-fit:cover; opacity:0.6;">
+                        </div>
+                        <div style="flex:1;">
+                            <div style="font-weight:700; font-size:0.9rem; margin-bottom:2px;">${item.name}</div>
+                            ${item.variant_name ? `<div style="font-size:0.8rem; color:#888;">${item.variant_name}</div>` : ''}
+                            <div style="font-size:0.8rem; color:#888; margin-top:4px;">Qté: ${item.quantity}</div>
+                            <div style="margin-top:4px; font-weight:600;">${parseFloat(item.line_total).toFixed(2)} €</div>
+                        </div>
+                        <button onclick="window.removeItem('${item.key}')" style="color:#999; font-size:1.2rem; padding:0 10px; border:none; background:none; cursor:pointer;">&times;</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // 3. Total
+        if (cartTotal) cartTotal.innerText = parseFloat(cart.total).toFixed(2) + ' €';
+    }
+
+    // Exposer la fonction remove au scope global pour les boutons générés en HTML
+    window.removeItem = function(key) {
+        updateCart('remove', { key });
+    };
+
+    /* --- 5. Events : Ajout Rapide (Grille Homepage) --- */
     const quickButtons = document.querySelectorAll('.nk-quick-add-btn');
-
     quickButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -37,22 +95,52 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasVariants = btn.dataset.hasVariants === '1';
 
             if (hasVariants) {
-                // Pour l'instant, simple alerte. Idéalement : rediriger vers produit ou ouvrir modal
-                alert("Ce produit a des variantes. Veuillez consulter la fiche produit pour choisir.");
-                window.location.href = btn.closest('a').href; // Redirection vers la fiche
+                // Redirection vers la fiche produit si variantes
+                window.location.href = btn.closest('a').href;
             } else {
-                // Simulation Ajout direct
-                simulateCartUpdate(productId, "Produit " + productId, "45.00 €", 1);
+                // Ajout direct (Quantité 1 par défaut)
+                updateCart('add', {
+                    product_id: productId,
+                    quantity: 1
+                });
             }
         });
     });
 
+    /* --- 6. Events : Formulaire Fiche Produit --- */
+    const addToCartForm = document.getElementById('addToCartForm');
+    if (addToCartForm) {
+        addToCartForm.addEventListener('submit', function(e) {
+            e.preventDefault();
 
-    /* --- 3. Header Scroll Effect --- */
+            const btn = document.getElementById('btnAddToCart');
+            const originalText = btn.innerText;
+            btn.innerText = "Ajout...";
+            btn.disabled = true;
+
+            const formData = new FormData(addToCartForm);
+
+            // Construction payload propre
+            const payload = {
+                product_id: formData.get('product_id'),
+                variant_id: formData.get('variant_id') || null,
+                quantity: formData.get('quantity')
+                // customization: ... (si vous ajoutez des champs texte plus tard)
+            };
+
+            updateCart('add', payload).then(() => {
+                // Reset UI
+                btn.innerText = originalText;
+                btn.disabled = false;
+            });
+        });
+    }
+
+    /* --- 7. Scroll Header --- */
     const header = document.getElementById('mainHeader');
     if (header) {
         window.addEventListener('scroll', () => {
-            if(window.scrollY > 50) {
+            if (window.scrollY > 50) {
                 header.classList.add('is-scrolled');
             } else {
                 header.classList.remove('is-scrolled');
@@ -60,66 +148,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
-    /* --- 4. Gestion Formulaire Page Produit (Add to Cart complet) --- */
-    const addToCartForm = document.getElementById('addToCartForm');
-
-    if (addToCartForm) {
-        addToCartForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const btn = document.getElementById('btnAddToCart');
-            const originalText = btn.innerText;
-            btn.innerText = "Ajout en cours...";
-            btn.disabled = true;
-
-            // Récupération des données du formulaire
-            const formData = new FormData(addToCartForm);
-            const quantity = formData.get('quantity');
-
-            // Récupération infos visuelles pour la simulation (titre/prix affichés sur la page)
-            const productNameEl = document.querySelector('.nk-title-lg');
-            const priceEl = document.querySelector('.nk-price');
-            const productName = productNameEl ? productNameEl.innerText : "Produit";
-            const price = priceEl ? priceEl.innerText : "-- €";
-
-            // Simulation d'envoi serveur (Plus tard: fetch('/api/cart/add', ...))
-            setTimeout(() => {
-                simulateCartUpdate(null, productName, price, quantity);
-
-                // Reset bouton
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }, 600);
-        });
-    }
+    // Initialisation : Charger le panier au démarrage
+    updateCart('get');
 
 
-    /* --- Fonction utilitaire pour mettre à jour le HTML du panier (Simulation) --- */
-    function simulateCartUpdate(id, name, price, qty) {
-        // Enlever le message "Vide" s'il existe
-        if(cartBody.querySelector('p')) cartBody.innerHTML = '';
+    const burgerBtn = document.getElementById('burgerBtn');
+    const menuDrawer = document.getElementById('menuDrawer');
+    const menuOverlay = document.getElementById('menuOverlay');
+    const menuClose = document.getElementById('menuClose');
 
-        const itemHtml = `
-            <div style="display:flex; gap:10px; margin-bottom:15px; border-bottom:1px solid #f0f0f0; padding-bottom:10px;">
-                <div style="width:60px; height:80px; background:#eee; display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:#888;">IMG</div>
-                <div>
-                    <div style="font-weight:700; font-size:0.9rem;">${name}</div>
-                    <div style="color:#888; font-size:0.8rem;">Quantité: ${qty}</div>
-                    <div style="margin-top:5px; font-weight:600;">${price}</div>
-                </div>
-            </div>
-        `;
-        cartBody.insertAdjacentHTML('beforeend', itemHtml);
-
-        // Incrément compteur
-        if (cartCountEl) {
-            let count = parseInt(cartCountEl.innerText) || 0;
-            cartCountEl.innerText = count + parseInt(qty);
+    function openMenu() {
+        if(menuDrawer && menuOverlay) {
+            menuDrawer.classList.add('is-open');
+            menuDrawer.style.transform = 'translateX(0)'; // Force override
+            menuOverlay.classList.add('is-open');
         }
-
-        // Ouvrir le panier pour feedback
-        openCart();
     }
+
+    function closeMenu() {
+        if(menuDrawer && menuOverlay) {
+            menuDrawer.classList.remove('is-open');
+            menuDrawer.style.transform = 'translateX(-100%)';
+            menuOverlay.classList.remove('is-open');
+        }
+    }
+
+    if(burgerBtn) burgerBtn.addEventListener('click', openMenu);
+    if(menuClose) menuClose.addEventListener('click', closeMenu);
+    if(menuOverlay) menuOverlay.addEventListener('click', closeMenu);
+
 
 });

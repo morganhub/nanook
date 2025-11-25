@@ -27,7 +27,13 @@ $name = isset($input['name']) ? trim((string)$input['name']) : '';
 $sku = isset($input['sku']) ? trim((string)$input['sku']) : '';
 $material = isset($input['material']) ? trim((string)$input['material']) : '';
 $color = isset($input['color']) ? trim((string)$input['color']) : '';
-$priceCents = isset($input['price']) && $input['price'] !== null ? (int)$input['price'] : null;
+$priceRaw = isset($input['price']) ? trim((string)$input['price']) : '0';
+
+// accepte "45,9" ou "45.9"
+$priceNormalized = str_replace(',', '.', $priceRaw);
+
+// on convertit et on arrondit à 2 décimales
+$price = round((float)$priceNormalized, 2);
 $stockQuantity = isset($input['stock_quantity']) ? (int)$input['stock_quantity'] : 0;
 $allowPreorder = !empty($input['allow_preorder_when_oos']) ? 1 : 0;
 $isActive = !empty($input['is_active']) ? 1 : 0;
@@ -39,8 +45,8 @@ if ($name === '') {
 if ($stockQuantity < 0) {
     $stockQuantity = 0;
 }
-if ($priceCents !== null && $priceCents < 0) {
-    $priceCents = 0;
+if ($price !== null && $price < 0) {
+    $price = 0;
 }
 
 try {
@@ -64,7 +70,7 @@ try {
             ':sku' => $sku !== '' ? $sku : null,
             ':material' => $material !== '' ? $material : null,
             ':color' => $color !== '' ? $color : null,
-            ':price' => $priceCents,
+            ':price' => $price,
             ':stock_quantity' => $stockQuantity,
             ':allow_preorder_when_oos' => $allowPreorder,
             ':is_active' => $isActive,
@@ -93,7 +99,7 @@ try {
             ':sku' => $sku !== '' ? $sku : null,
             ':material' => $material !== '' ? $material : null,
             ':color' => $color !== '' ? $color : null,
-            ':price' => $priceCents,
+            ':price' => $price,
             ':stock_quantity' => $stockQuantity,
             ':allow_preorder_when_oos' => $allowPreorder,
             ':is_active' => $isActive,

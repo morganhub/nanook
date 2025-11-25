@@ -277,8 +277,8 @@ require __DIR__ . '/_header.php';
         }
     }
 
-    function formatPrice(priceCents) {
-        let euros = (priceCents / 100).toFixed(2);
+    function formatPrice(price) {
+        let euros = (price).toFixed(2);
         return euros + ' €';
     }
 

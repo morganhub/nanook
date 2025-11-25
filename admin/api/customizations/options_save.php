@@ -25,7 +25,7 @@ if ($customizationId <= 0) {
 $id = isset($input['id']) ? (int)$input['id'] : 0;
 $label = isset($input['label']) ? trim((string)$input['label']) : '';
 $description = isset($input['description']) ? trim((string)$input['description']) : '';
-$priceDelta = isset($input['price_delta_cents']) ? (int)$input['price_delta_cents'] : 0;
+$priceDelta = isset($input['price_delta']) ? (int)$input['price_delta'] : 0;
 $displayOrder = isset($input['display_order']) ? (int)$input['display_order'] : 0;
 
 if ($label === '') {
@@ -42,14 +42,14 @@ try {
             'UPDATE nanook_product_customization_options
              SET label = :label,
                  description = :description,
-                 price_delta_cents = :price_delta_cents,
+                 price_delta = :price_delta,
                  display_order = :display_order
              WHERE id = :id AND customization_id = :cid'
         );
         $stmt->execute([
             ':label' => $label,
             ':description' => $description !== '' ? $description : null,
-            ':price_delta_cents' => $priceDelta,
+            ':price_delta' => $priceDelta,
             ':display_order' => $displayOrder,
             ':id' => $id,
             ':cid' => $customizationId,
@@ -59,15 +59,15 @@ try {
     } else {
         $stmt = $pdo->prepare(
             'INSERT INTO nanook_product_customization_options
-            (customization_id, label, description, price_delta_cents, display_order)
+            (customization_id, label, description, price_delta, display_order)
             VALUES
-            (:cid, :label, :description, :price_delta_cents, :display_order)'
+            (:cid, :label, :description, :price_delta, :display_order)'
         );
         $stmt->execute([
             ':cid' => $customizationId,
             ':label' => $label,
             ':description' => $description !== '' ? $description : null,
-            ':price_delta_cents' => $priceDelta,
+            ':price_delta' => $priceDelta,
             ':display_order' => $displayOrder,
         ]);
 

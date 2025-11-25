@@ -23,7 +23,13 @@ $name = isset($input['name']) ? trim((string)$input['name']) : '';
 $slug = isset($input['slug']) ? trim((string)$input['slug']) : '';
 $shortDescription = isset($input['short_description']) ? trim((string)$input['short_description']) : '';
 $longDescription = isset($input['long_description']) ? trim((string)$input['long_description']) : '';
-$priceCents = isset($input['price']) ? (int)$input['price'] : 0;
+$priceRaw = isset($input['price']) ? trim((string)$input['price']) : '0';
+
+// accepte "45,9" ou "45.9"
+$priceNormalized = str_replace(',', '.', $priceRaw);
+
+// on convertit et on arrondit à 2 décimales
+$price = round((float)$priceNormalized, 2);
 $stockQuantity = isset($input['stock_quantity']) ? (int)$input['stock_quantity'] : 0;
 $allowPreorder = !empty($input['allow_preorder_when_oos']) ? 1 : 0;
 $isActive = !empty($input['is_active']) ? 1 : 0;
@@ -34,8 +40,8 @@ if ($name === '' || $slug === '') {
     jsonResponse(['error' => 'name_and_slug_required'], 400);
 }
 
-if ($priceCents < 0) {
-    $priceCents = 0;
+if ($price < 0) {
+    $price = 0;
 }
 if ($stockQuantity < 0) {
     $stockQuantity = 0;
@@ -73,7 +79,7 @@ try {
             ':slug' => $slug,
             ':short_description' => $shortDescription,
             ':long_description' => $longDescription,
-            ':price' => $priceCents,
+            ':price' => $price,
             ':stock_quantity' => $stockQuantity,
             ':allow_preorder_when_oos' => $allowPreorder,
             ':is_active' => $isActive,
@@ -97,7 +103,7 @@ try {
             ':slug' => $slug,
             ':short_description' => $shortDescription,
             ':long_description' => $longDescription,
-            ':price' => $priceCents,
+            ':price' => $price,
             ':stock_quantity' => $stockQuantity,
             ':allow_preorder_when_oos' => $allowPreorder,
             ':is_active' => $isActive,
