@@ -4,6 +4,31 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../config/database.php';
 
+
+function getProductsByCategory(PDO $pdo, string $slug): array
+{
+    $sql = "
+        SELECT 
+            p.*, 
+            pi.file_path as image_path,
+            GROUP_CONCAT(c.name SEPARATOR ', ') as category_names
+        FROM nanook_products p
+        INNER JOIN nanook_product_category pc ON p.id = pc.product_id
+        INNER JOIN nanook_categories cat ON pc.category_id = cat.id
+        LEFT JOIN nanook_product_images pi ON p.id = pi.product_id AND pi.is_main = 1
+        LEFT JOIN nanook_categories c ON pc.category_id = c.id
+        WHERE p.is_active = 1 
+          AND cat.slug = :slug
+        GROUP BY p.id
+        ORDER BY p.display_order ASC, p.created_at DESC
+    ";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':slug' => $slug]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
 function getHomeProducts(PDO $pdo, int $limit = 8): array
 {
     $sql = "

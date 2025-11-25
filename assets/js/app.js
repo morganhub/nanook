@@ -60,20 +60,27 @@ document.addEventListener('DOMContentLoaded', () => {
             if (cart.items.length === 0) {
                 cartBody.innerHTML = '<p style="text-align:center; color:#888; margin-top:50px;">Votre panier est vide.</p>';
             } else {
-                cartBody.innerHTML = cart.items.map(item => `
-                    <div style="display:flex; gap:10px; margin-bottom:15px; border-bottom:1px solid #f0f0f0; padding-bottom:10px;">
-                        <div style="width:60px; height:80px; background:#eee; overflow:hidden; flex-shrink:0;">
-                           <img src="/assets/img/placeholder.jpg" style="width:100%; height:100%; object-fit:cover; opacity:0.6;">
-                        </div>
-                        <div style="flex:1;">
-                            <div style="font-weight:700; font-size:0.9rem; margin-bottom:2px;">${item.name}</div>
-                            ${item.variant_name ? `<div style="font-size:0.8rem; color:#888;">${item.variant_name}</div>` : ''}
-                            <div style="font-size:0.8rem; color:#888; margin-top:4px;">Qté: ${item.quantity}</div>
-                            <div style="margin-top:4px; font-weight:600;">${parseFloat(item.line_total).toFixed(2)} €</div>
-                        </div>
-                        <button onclick="window.removeItem('${item.key}')" style="color:#999; font-size:1.2rem; padding:0 10px; border:none; background:none; cursor:pointer;">&times;</button>
-                    </div>
-                `).join('');
+                cartBody.innerHTML = cart.items.map(item => {
+                    // Logique d'image : Si image en base ? Sinon Placeholder.
+                    const imgSrc = item.image
+                        ? '/storage/product_images/' + item.image
+                        : '/assets/img/placeholder.jpg';
+
+                    return `
+            <div style="display:flex; gap:10px; margin-bottom:15px; border-bottom:1px solid #f0f0f0; padding-bottom:10px;">
+                <div style="width:60px; height:80px; background:#f9f9f9; overflow:hidden; flex-shrink:0;">
+                   <img src="${imgSrc}" style="width:100%; height:100%; object-fit:cover;" alt="${item.name}">
+                </div>
+                <div style="flex:1;">
+                    <div style="font-weight:700; font-size:0.9rem; margin-bottom:2px;">${item.name}</div>
+                    ${item.variant_name ? `<div style="font-size:0.8rem; color:#888;">${item.variant_name}</div>` : ''}
+                    <div style="font-size:0.8rem; color:#888; margin-top:4px;">Qté: ${item.quantity}</div>
+                    <div style="margin-top:4px; font-weight:600;">${parseFloat(item.line_total).toFixed(2)} €</div>
+                </div>
+                <button onclick="window.removeItem('${item.key}')" style="color:#999; font-size:1.2rem; padding:0 10px; border:none; background:none; cursor:pointer;">&times;</button>
+            </div>
+            `;
+                }).join('');
             }
         }
 

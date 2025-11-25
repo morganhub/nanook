@@ -42,7 +42,7 @@ class CartService
     public function getCartDetails(): array
     {
         if (empty($_SESSION['cart'])) {
-            return ['items' => [], 'total' => 0, 'count' => 0];
+            return ['items' => [], 'total' => 0.0, 'count' => 0];
         }
 
         $pdo = getPdo();
@@ -51,17 +51,22 @@ class CartService
         $count = 0;
 
         foreach ($_SESSION['cart'] as $key => $item) {
-            // Récupération info produit
-            $stmt = $pdo->prepare("SELECT name, price, slug FROM nanook_products WHERE id = :id");
+            // 1. Infos Produit + IMAGE (Join)
+            $stmt = $pdo->prepare("
+                SELECT p.name, p.price, p.slug, pi.file_path as image
+                FROM nanook_products p
+                LEFT JOIN nanook_product_images pi ON p.id = pi.product_id AND pi.is_main = 1
+                WHERE p.id = :id
+            ");
             $stmt->execute([':id' => $item['product_id']]);
             $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if (!$product) continue; // Produit supprimé entre temps
+            if (!$product) continue;
 
             $price = (float)$product['price'];
             $variantName = null;
 
-            // Si variante, on récupère le prix spécifique et le nom
+            // 2. Infos Variante
             if ($item['variant_id']) {
                 $stmtVar = $pdo->prepare("SELECT name, price FROM nanook_product_variants WHERE id = :id");
                 $stmtVar->execute([':id' => $item['variant_id']]);
@@ -74,9 +79,6 @@ class CartService
                 }
             }
 
-            // Calcul prix options customization (si implémenté plus tard)
-            // ...
-
             $lineTotal = $price * $item['quantity'];
             $total += $lineTotal;
             $count += $item['quantity'];
@@ -86,6 +88,8 @@ class CartService
                 'product_id' => $item['product_id'],
                 'name' => $product['name'],
                 'slug' => $product['slug'],
+                'image' => $product['image'], // On passe l'image au JSON
+                'variant_id' => $item['variant_id'],
                 'variant_name' => $variantName,
                 'quantity' => $item['quantity'],
                 'unit_price' => $price,

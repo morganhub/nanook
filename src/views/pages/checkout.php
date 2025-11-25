@@ -101,7 +101,7 @@ if (empty($cartData['items'])) {
                 </div>
 
                 <button type="submit" class="nk-btn-primary" style="margin-top: 20px; width: 100%;">Valider la commande</button>
-                <p style="font-size: 0.8rem; color: #888; text-align: center; margin-top: 10px;">Paiement à la livraison / Virement (Simulation)</p>
+                <p style="font-size: 0.8rem; color: #888; text-align: center; margin-top: 10px;">le paiement s'effectuera par Wero, Paypal ou virement bancaire</p>
             </div>
         </div>
 

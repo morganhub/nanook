@@ -9,7 +9,7 @@
                 </p>
             </div>
 
-            <div>
+            <div style="display: none">
                 <h4 class="nk-title-md" style="font-size: 1rem; margin-bottom: 20px; font-weight: 400; text-transform: uppercase; letter-spacing: 1px;">Informations</h4>
                 <ul style="list-style: none; padding: 0; font-size: 0.9rem; color: var(--nk-text-light);">
                     <li style="margin-bottom: 10px;"><a href="#" class="hover-underline">Livraisons & Retours</a></li>
@@ -19,7 +19,7 @@
                 </ul>
             </div>
 
-            <div>
+            <div style="display: none">
                 <h4 class="nk-title-md" style="font-size: 1rem; margin-bottom: 20px; font-weight: 400; text-transform: uppercase; letter-spacing: 1px;">Newsletter</h4>
                 <p class="nk-text-body" style="font-size: 0.9rem; margin-bottom: 12px;">Histoires d'atelier et nouveautés, sans spam.</p>
                 <form action="#" style="display: flex; border-bottom: 1px solid var(--nk-text-main); padding-bottom: 5px;">
