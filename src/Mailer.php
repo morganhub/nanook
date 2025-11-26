@@ -2,7 +2,7 @@
 
 class Mailer
 {
-    private string $apiKey = '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';
+    private string $apiKey = EMAIL_SENDER_API_KEY;
     private string $senderEmail = 'contact@nanook.paris';
     private string $senderName = 'Nanook';
     private string $endpoint = 'https://api.brevo.com/v3/smtp/email';

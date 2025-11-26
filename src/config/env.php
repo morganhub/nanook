@@ -31,6 +31,10 @@ if (is_file($envPath) && is_readable($envPath)) {
     }
 }
 
+
+if (!defined('EMAIL_SENDER_API_KEY')) {
+    define('EMAIL_SENDER_API_KEY', $_ENV['EMAIL_SENDER_API_KEY'] ?? '');
+}
 if (!defined('DB_HOST')) {
     define('DB_HOST', $_ENV['DB_HOST'] ?? '127.0.0.1');
 }
