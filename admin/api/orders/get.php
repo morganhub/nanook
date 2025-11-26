@@ -31,6 +31,8 @@ $stmt = $pdo->prepare(
          shipping_city,
          shipping_country,
          shipping_preference,
+         tracking_number,
+         tracking_carrier,
          customer_comment,
          created_at,
          updated_at
@@ -59,7 +61,7 @@ $itemStmt = $pdo->prepare(
          quantity,
          is_preorder,
          customizations_json,
-         line_total_cents
+         line_total
      FROM nanook_order_items
      WHERE order_id = :oid
      ORDER BY id ASC'
@@ -74,7 +76,7 @@ foreach ($items as &$item) {
     $item['unit_price'] = (int)$item['unit_price'];
     $item['quantity'] = (int)$item['quantity'];
     $item['is_preorder'] = (int)$item['is_preorder'];
-    $item['line_total_cents'] = (int)$item['line_total_cents'];
+    $item['line_total'] = (int)$item['line_total'];
     if ($item['customizations_json'] !== null) {
         $decoded = json_decode($item['customizations_json'], true);
         if (is_array($decoded)) {

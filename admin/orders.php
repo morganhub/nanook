@@ -38,6 +38,17 @@ require __DIR__ . '/_header.php';
             color: #111827;
             text-decoration: none;
         }
+        .btn-status {
+            background: #111827;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-right: 6px;
+        }
+        .btn-status:hover { opacity: .92; }
         .back-link:hover { text-decoration: underline; }
         .card {
             background: #ffffff;
@@ -129,6 +140,10 @@ require __DIR__ . '/_header.php';
             background: #dbeafe;
             color: #1d4ed8;
         }
+        .badge-status-delivered {
+            background: #def7ec;
+            color: #0f5132;
+        }
         .badge-status-cancelled {
             background: #fee2e2;
             color: #b91c1c;
@@ -185,6 +200,7 @@ require __DIR__ . '/_header.php';
                 <option value="pending">En attente</option>
                 <option value="confirmed">Confirmée</option>
                 <option value="shipped">Expédiée</option>
+                <option value="delivered">Livrée</option>
                 <option value="cancelled">Annulée</option>
             </select>
             <select id="shippingPrefFilter">
@@ -224,7 +240,7 @@ require __DIR__ . '/_header.php';
         </div>
     </div>
 </div>
-
+    <script src="/assets/js/admin-order-status.js"></script>
 <script>
     let apiBaseUrl = '/admin/api';
 
@@ -240,7 +256,10 @@ require __DIR__ . '/_header.php';
     let dateFromInput = document.getElementById('dateFromInput');
     let dateToInput = document.getElementById('dateToInput');
     let applyFiltersButton = document.getElementById('applyFiltersButton');
-
+    const statusModal = AdminOrders.createStatusModal({
+        apiBaseUrl,
+        onStatusUpdated: () => loadOrders(currentPage),
+    });
     let currentPage = 1;
     let totalPages = 1;
     let currentQuery = '';
@@ -278,41 +297,12 @@ require __DIR__ . '/_header.php';
     }
 
     function formatPrice(price) {
-        let euros = (price).toFixed(2);
+        let euros = price
         return euros + ' €';
     }
 
-    function statusBadgeClass(status) {
-        if (status === 'pending') {
-            return 'badge badge-status-pending';
-        }
-        if (status === 'confirmed') {
-            return 'badge badge-status-confirmed';
-        }
-        if (status === 'shipped') {
-            return 'badge badge-status-shipped';
-        }
-        if (status === 'cancelled') {
-            return 'badge badge-status-cancelled';
-        }
-        return 'badge';
-    }
-
-    function statusLabel(status) {
-        if (status === 'pending') {
-            return 'En attente';
-        }
-        if (status === 'confirmed') {
-            return 'Confirmée';
-        }
-        if (status === 'shipped') {
-            return 'Expédiée';
-        }
-        if (status === 'cancelled') {
-            return 'Annulée';
-        }
-        return status;
-    }
+    const statusBadgeClass = AdminOrders.statusBadgeClass;
+    const statusLabel = AdminOrders.statusLabel;
 
     function shippingPrefLabel(pref) {
         if (pref === 'christmas') {
@@ -394,10 +384,16 @@ require __DIR__ . '/_header.php';
             tr.appendChild(tdItems);
 
             let tdActions = document.createElement('td');
+            let statusBtn = document.createElement('button');
+            statusBtn.type = 'button';
+            statusBtn.className = 'btn-status';
+            statusBtn.textContent = 'Changer statut';
+            statusBtn.addEventListener('click', () => statusModal.openModal(o.id, o.status));
             let link = document.createElement('a');
             link.href = '/admin/order_detail.php?id=' + encodeURIComponent(o.id);
             link.textContent = 'Détails';
             link.className = 'link';
+            tdActions.appendChild(statusBtn);
             tdActions.appendChild(link);
             tr.appendChild(tdActions);
 

@@ -291,7 +291,7 @@ require __DIR__ . '/_header.php';
     }
 
     function formatPrice(price) {
-        const euros = (price).toFixed(2);
+        const euros = price
         return euros + ' €';
     }
 

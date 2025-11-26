@@ -18,3 +18,5 @@ declare(strict_types=1);
     </style>
     <span>Nanook · Back-office</span>
 </footer>
+</body>
+</html>

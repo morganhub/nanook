@@ -2,15 +2,10 @@
 // public/admin/_header.php
 declare(strict_types=1);
 
-// $pageTitle   (string)  => titre de la page (optionnel)
-// $activeMenu  (string)  => 'products' | 'categories' | 'orders' | 'dashboard' | ...
 
-if (!isset($pageTitle) || $pageTitle === '') {
-    $pageTitle = 'Nanook · Admin';
-}
-if (!isset($activeMenu)) {
-    $activeMenu = '';
-}
+
+
+require __DIR__ . '/head.php';
 ?>
 <header class="admin-header">
     <style>

@@ -99,6 +99,10 @@ require __DIR__ . '/_header.php';
             background: #dbeafe;
             color: #1d4ed8;
         }
+        .badge-status-delivered {
+            background: #def7ec;
+            color: #0f5132;
+        }
         .badge-status-cancelled {
             background: #fee2e2;
             color: #b91c1c;
@@ -107,6 +111,25 @@ require __DIR__ . '/_header.php';
             background: #e0f2fe;
             color: #0369a1;
         }
+        .btn-status {
+            background: #111827;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            padding: 7px 11px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .btn-status:hover { opacity: .92; }
+        .tracking-box {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+        .tracking-box strong { color: #111827; }
         .badge-pref-no {
             background: #f3f4f6;
             color: #374151;
@@ -162,6 +185,7 @@ require __DIR__ . '/_header.php';
             <div class="card-title" id="orderTitle">Commande</div>
             <div>
                 <span class="badge" id="statusBadge"></span>
+                <button type="button" class="btn-status" id="changeStatusButton">Changer le statut</button>
             </div>
         </div>
         <div class="grid-two">
@@ -172,6 +196,7 @@ require __DIR__ . '/_header.php';
                 <div><span class="label">Préférence livraison :</span>
                     <span class="value" id="orderShippingPref"></span>
                 </div>
+                <div id="trackingInfo" class="tracking-box" style="display:none;"></div>
             </div>
             <div>
                 <div><span class="label">Client :</span> <span class="value" id="customerName"></span></div>
@@ -236,7 +261,7 @@ require __DIR__ . '/_header.php';
         </table>
     </div>
 </div>
-
+<script src="/assets/js/admin-order-status.js"></script>
 <script>
     let apiBaseUrl = '/admin/api';
 
@@ -244,10 +269,13 @@ require __DIR__ . '/_header.php';
 
     let orderTitle = document.getElementById('orderTitle');
     let statusBadge = document.getElementById('statusBadge');
+    let changeStatusButton = document.getElementById('changeStatusButton');
+
     let orderNumber = document.getElementById('orderNumber');
     let orderDate = document.getElementById('orderDate');
     let orderTotal = document.getElementById('orderTotal');
     let orderShippingPref = document.getElementById('orderShippingPref');
+    let trackingInfo = document.getElementById('trackingInfo');
 
     let customerName = document.getElementById('customerName');
     let customerEmail = document.getElementById('customerEmail');
@@ -261,6 +289,17 @@ require __DIR__ . '/_header.php';
     let itemsTableBody = document.getElementById('itemsTableBody');
     let customerComment = document.getElementById('customerComment');
     let emailLogsTableBody = document.getElementById('emailLogsTableBody');
+
+    const statusBadgeClass = AdminOrders.statusBadgeClass;
+    const statusLabel = AdminOrders.statusLabel;
+
+    let currentOrderId = null;
+    let loadedOrder = null;
+
+    const statusModal = AdminOrders.createStatusModal({
+        apiBaseUrl,
+        onStatusUpdated: () => loadOrder(),
+    });
 
     function showMessage(text, type = 'info') {
         if (!text) {
@@ -296,41 +335,38 @@ require __DIR__ . '/_header.php';
     }
 
     function formatPrice(price) {
-        let euros = (price).toFixed(2);
+        let euros = price
         return euros + ' €';
     }
 
-    function statusBadgeClass(status) {
-        if (status === 'pending') {
-            return 'badge badge-status-pending';
+    function renderTracking(order) {
+        if (!trackingInfo) {
+            return;
         }
-        if (status === 'confirmed') {
-            return 'badge badge-status-confirmed';
+
+        if (order.tracking_number && order.tracking_carrier) {
+            trackingInfo.style.display = 'block';
+            trackingInfo.innerHTML =
+                '<div><strong>Transporteur :</strong> ' + order.tracking_carrier.toUpperCase() + '</div>' +
+                '<div><strong>Numéro de suivi :</strong> ' + order.tracking_number + '</div>';
+            return;
         }
-        if (status === 'shipped') {
-            return 'badge badge-status-shipped';
+
+        if (order.status === 'shipped') {
+            trackingInfo.style.display = 'block';
+            trackingInfo.textContent = 'Commande en cours de livraison. Aucun numéro de suivi renseigné.';
+            return;
         }
-        if (status === 'cancelled') {
-            return 'badge badge-status-cancelled';
+        if (order.status === 'delivered') {
+            trackingInfo.style.display = 'block';
+            trackingInfo.textContent = 'Commande livrée.';
+            return;
         }
-        return 'badge';
+        trackingInfo.style.display = 'none';
+        trackingInfo.textContent = '';
     }
 
-    function statusLabel(status) {
-        if (status === 'pending') {
-            return 'En attente';
-        }
-        if (status === 'confirmed') {
-            return 'Confirmée';
-        }
-        if (status === 'shipped') {
-            return 'Expédiée';
-        }
-        if (status === 'cancelled') {
-            return 'Annulée';
-        }
-        return status;
-    }
+
 
     function shippingPrefLabel(pref) {
         if (pref === 'christmas') {
@@ -343,6 +379,8 @@ require __DIR__ . '/_header.php';
     }
 
     function renderOrder(order) {
+        loadedOrder = order;
+        currentOrderId = order.id;
         orderTitle.textContent = 'Commande #' + order.order_number;
         statusBadge.className = statusBadgeClass(order.status);
         statusBadge.textContent = statusLabel(order.status);
@@ -363,7 +401,7 @@ require __DIR__ . '/_header.php';
             (order.shipping_postal_code ? order.shipping_postal_code + ' ' : '') +
             (order.shipping_city || '');
         shippingAddressCountry.textContent = order.shipping_country || '';
-
+        renderTracking(order);
         if (order.customer_comment && order.customer_comment.trim() !== '') {
             customerComment.textContent = order.customer_comment;
         } else {
@@ -412,7 +450,7 @@ require __DIR__ . '/_header.php';
             tr.appendChild(tdUnit);
 
             let tdLine = document.createElement('td');
-            tdLine.textContent = formatPrice(item.line_total_cents);
+            tdLine.textContent = formatPrice(item.line_total);
             tr.appendChild(tdLine);
 
             let tdPreorder = document.createElement('td');
@@ -537,6 +575,13 @@ require __DIR__ . '/_header.php';
             renderEmailLogs([]);
         }
     }
+
+    changeStatusButton.addEventListener('click', () => {
+        if (!currentOrderId) {
+            return;
+        }
+        statusModal.openModal(currentOrderId, loadedOrder ? loadedOrder.status : null);
+    });
 
     (async function init() {
         await ensureAuthenticated();
