@@ -29,13 +29,12 @@ $material = isset($input['material']) ? trim((string)$input['material']) : '';
 $color = isset($input['color']) ? trim((string)$input['color']) : '';
 $priceRaw = isset($input['price']) ? trim((string)$input['price']) : '0';
 
-// accepte "45,9" ou "45.9"
 $priceNormalized = str_replace(',', '.', $priceRaw);
+$price = ($priceRaw === '' || $priceRaw === null) ? null : round((float)$priceNormalized, 2);
 
-// on convertit et on arrondit à 2 décimales
-$price = round((float)$priceNormalized, 2);
 $stockQuantity = isset($input['stock_quantity']) ? (int)$input['stock_quantity'] : 0;
 $allowPreorder = !empty($input['allow_preorder_when_oos']) ? 1 : 0;
+$availabilityDate = !empty($input['availability_date']) ? $input['availability_date'] : null;
 $isActive = !empty($input['is_active']) ? 1 : 0;
 $displayOrder = isset($input['display_order']) ? (int)$input['display_order'] : 0;
 
@@ -60,6 +59,7 @@ try {
                  price = :price,
                  stock_quantity = :stock_quantity,
                  allow_preorder_when_oos = :allow_preorder_when_oos,
+                 availability_date = :availability_date,
                  is_active = :is_active,
                  display_order = :display_order,
                  updated_at = NOW()
@@ -73,6 +73,7 @@ try {
             ':price' => $price,
             ':stock_quantity' => $stockQuantity,
             ':allow_preorder_when_oos' => $allowPreorder,
+            ':availability_date' => $availabilityDate,
             ':is_active' => $isActive,
             ':display_order' => $displayOrder,
             ':id' => $id,
@@ -88,10 +89,10 @@ try {
         $stmt = $pdo->prepare(
             'INSERT INTO nanook_product_variants
             (product_id, name, sku, material, color, price, stock_quantity,
-             allow_preorder_when_oos, is_active, display_order, created_at, updated_at)
+             allow_preorder_when_oos, availability_date, is_active, display_order, created_at, updated_at)
             VALUES
             (:product_id, :name, :sku, :material, :color, :price, :stock_quantity,
-             :allow_preorder_when_oos, :is_active, :display_order, NOW(), NOW())'
+             :allow_preorder_when_oos, :availability_date, :is_active, :display_order, NOW(), NOW())'
         );
         $stmt->execute([
             ':product_id' => $productId,
@@ -102,6 +103,7 @@ try {
             ':price' => $price,
             ':stock_quantity' => $stockQuantity,
             ':allow_preorder_when_oos' => $allowPreorder,
+            ':availability_date' => $availabilityDate,
             ':is_active' => $isActive,
             ':display_order' => $displayOrder,
         ]);

@@ -26,6 +26,7 @@ $stmt = $pdo->prepare(
          price,
          stock_quantity,
          allow_preorder_when_oos,
+         availability_date, 
          is_active,
          display_order,
          created_at,
@@ -40,11 +41,12 @@ if (!$product) {
     jsonResponse(['error' => 'not_found'], 404);
 }
 
-$product['price'] = (int)$product['price'];
+$product['price'] = (float)$product['price']; // Cast en float pour propreté
 $product['stock_quantity'] = (int)$product['stock_quantity'];
 $product['allow_preorder_when_oos'] = (int)$product['allow_preorder_when_oos'];
 $product['is_active'] = (int)$product['is_active'];
 $product['display_order'] = (int)$product['display_order'];
+// availability_date est une string "YYYY-MM-DD" ou null, on laisse tel quel
 
 $catStmt = $pdo->prepare(
     'SELECT category_id

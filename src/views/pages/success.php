@@ -29,7 +29,7 @@ if (!$orderNumber) {
     <div style="background: #fff; border: 1px solid #E5E5E5; padding: 40px; margin-bottom: 50px;">
         <h3 class="nk-title-md" style="font-size: 1.2rem; margin-bottom: 15px;">La suite ?</h3>
         <p class="nk-text-body">
-            Je vous contacterai pour les modalités de règlement par Wero, Paypal ou virement bancaire
+            Je vous contacterai pour les modalités de règlement<br>par Wero, Paypal ou virement bancaire
         </p>
     </div>
 

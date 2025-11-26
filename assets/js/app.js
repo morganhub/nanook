@@ -186,3 +186,71 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 });
+
+
+
+
+(function() {
+    // Configuration
+    const DELAY_BEFORE_TRACKING = 2000; // 2 secondes
+    let hasTracked = false;
+
+    // Détection du contexte de page
+    // On essaie de deviner le type de page via l'URL ou des éléments du DOM
+    function getPageContext() {
+        const path = window.location.pathname;
+
+        if (path === '/' || path === '/index.php') return { type: 'home' };
+        if (path.startsWith('/c/')) return { type: 'category', id: null }; // Idéalement récupérer l'ID via un data-attribute caché
+        if (path.startsWith('/p/')) {
+            // Sur la page produit, on peut souvent trouver l'ID dans un input caché
+            const input = document.querySelector('input[name="product_id"]');
+            const pid = input ? input.value : null;
+            return { type: 'product', id: pid };
+        }
+        if (path === '/checkout') return { type: 'checkout' };
+        if (path === '/panier') return { type: 'cart' };
+
+        return { type: 'other' };
+    }
+
+    function sendStat() {
+        if (hasTracked) return;
+        hasTracked = true;
+
+        const context = getPageContext();
+
+        // Envoi asynchrone silencieux (beacon ou fetch keepalive si possible, sinon fetch standard)
+        fetch('/api/stats.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(context),
+            keepalive: true
+        }).catch(() => {}); // On ignore les erreurs silencieusement
+
+        // Nettoyage des écouteurs
+        removeListeners();
+    }
+
+    function initTracking() {
+        // On ajoute les écouteurs d'interaction humaine
+        ['mousemove', 'touchstart', 'scroll', 'keydown', 'click'].forEach(evt => {
+            document.addEventListener(evt, onHumanInteraction, { passive: true, once: true });
+        });
+    }
+
+    function onHumanInteraction() {
+        // Dès qu'une interaction est détectée, on lance l'envoi
+        sendStat();
+    }
+
+    function removeListeners() {
+        ['mousemove', 'touchstart', 'scroll', 'keydown', 'click'].forEach(evt => {
+            document.removeEventListener(evt, onHumanInteraction);
+        });
+    }
+
+    // Démarrage différé "Anti-bot temporel"
+    setTimeout(initTracking, DELAY_BEFORE_TRACKING);
+
+})();

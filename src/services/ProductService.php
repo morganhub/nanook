@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../config/database.php';
 
-
 function getProductsByCategory(PDO $pdo, string $slug): array
 {
+    // Pas de changement majeur ici, on récupère * (donc availability_date inclus)
     $sql = "
         SELECT 
             p.*, 
@@ -28,9 +28,9 @@ function getProductsByCategory(PDO $pdo, string $slug): array
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-
 function getHomeProducts(PDO $pdo, int $limit = 8): array
 {
+    // Pas de changement majeur ici
     $sql = "
         SELECT 
             p.*, 
@@ -53,7 +53,7 @@ function getHomeProducts(PDO $pdo, int $limit = 8): array
 
 function getProductBySlug(PDO $pdo, string $slug): ?array
 {
-    // 1. Infos produit
+    // 1. Infos produit (récupère availability_date automatiquement via *)
     $stmt = $pdo->prepare("SELECT * FROM nanook_products WHERE slug = :slug AND is_active = 1");
     $stmt->execute([':slug' => $slug]);
     $product = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -67,7 +67,7 @@ function getProductBySlug(PDO $pdo, string $slug): ?array
     $stmtImg->execute([':pid' => $pid]);
     $product['images'] = $stmtImg->fetchAll(PDO::FETCH_ASSOC);
 
-    // 3. Variantes
+    // 3. Variantes (récupère availability_date automatiquement via *)
     $stmtVar = $pdo->prepare("SELECT * FROM nanook_product_variants WHERE product_id = :pid AND is_active = 1 ORDER BY display_order ASC");
     $stmtVar->execute([':pid' => $pid]);
     $product['variants'] = $stmtVar->fetchAll(PDO::FETCH_ASSOC);

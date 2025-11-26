@@ -12,6 +12,9 @@ $pdo = getPdo();
 $admin = requireAdmin($pdo);
 
 $productId = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
+// NOUVEAU : Récupération de l'ID variante (optionnel)
+$variantId = isset($_POST['variant_id']) && $_POST['variant_id'] !== '' ? (int)$_POST['variant_id'] : null;
+
 if ($productId <= 0) {
     jsonResponse(['error' => 'invalid_product_id'], 400);
 }
@@ -21,7 +24,7 @@ if (empty($_FILES['image']) || !is_uploaded_file($_FILES['image']['tmp_name'])) 
 }
 
 $file = $_FILES['image'];
-$maxSize = 5 * 1024 * 1024;
+$maxSize = 5 * 1024 * 1024; // 5MB
 
 if ($file['size'] > $maxSize) {
     jsonResponse(['error' => 'file_too_large'], 400);
@@ -60,23 +63,24 @@ if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
     jsonResponse(['error' => 'upload_failed'], 500);
 }
 
-$stmt = $pdo->prepare(
-    'SELECT COUNT(*) AS cnt FROM nanook_product_images WHERE product_id = :pid'
-);
+// On vérifie s'il y a déjà des images pour définir "main" par défaut
+// Si c'est une variante, on ne se préoccupe pas trop du "main" global, mais on le gère quand même
+$stmt = $pdo->prepare('SELECT COUNT(*) AS cnt FROM nanook_product_images WHERE product_id = :pid');
 $stmt->execute([':pid' => $productId]);
 $row = $stmt->fetch();
 $hasImages = $row && (int)$row['cnt'] > 0;
 
 $insert = $pdo->prepare(
     'INSERT INTO nanook_product_images
-    (product_id, file_path, is_main, display_order, created_at)
+    (product_id, variant_id, file_path, is_main, display_order, created_at)
     VALUES
-    (:product_id, :file_path, :is_main, :display_order, NOW())'
+    (:product_id, :variant_id, :file_path, :is_main, :display_order, NOW())'
 );
 $insert->execute([
     ':product_id' => $productId,
+    ':variant_id' => $variantId, // Peut être NULL
     ':file_path' => $relativePath,
-    ':is_main' => $hasImages ? 0 : 1,
+    ':is_main' => (!$hasImages && $variantId === null) ? 1 : 0, // Main seulement si c'est la toute première image du produit parent
     ':display_order' => 0,
 ]);
 
@@ -84,6 +88,7 @@ $imageId = (int)$pdo->lastInsertId();
 
 logAdminActivity($pdo, $admin['id'], 'product_image_upload', 'product', $productId, [
     'image_id' => $imageId,
+    'variant_id' => $variantId,
     'file_path' => $relativePath,
 ]);
 
@@ -92,7 +97,6 @@ jsonResponse([
     'data' => [
         'id' => $imageId,
         'file_path' => $relativePath,
-        'is_main' => $hasImages ? 0 : 1,
-        'display_order' => 0,
+        'variant_id' => $variantId
     ],
 ]);

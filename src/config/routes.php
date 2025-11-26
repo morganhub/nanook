@@ -22,6 +22,14 @@ $pageContent = null; // Sera défini ci-dessous
 
 // --- 2. Routage & Logique ---
 
+// API STATS (AJAX)
+// Cette route doit être placée avant les routes de pages pour intercepter l'appel
+if ($requestUri === '/api/stats.php') {
+    require_once __DIR__ . '/../services/StatsService.php';
+    recordVisit($pdo); // $pdo est dispo car index.php l'a initialisé
+    exit; // On arrête tout ici, on ne veut pas charger le HTML
+}
+
 // Homepage
 if ($requestUri === '/' || $requestUri === '/index.php') {
     $pageContent = $viewPath . 'home.php';

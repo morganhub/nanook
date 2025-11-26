@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require __DIR__ . '/../_bootstrap.php';
+require_once __DIR__ . '/../../../src/Mailer.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 jsonResponse(['error' => 'method_not_allowed'], 405);
@@ -116,9 +117,11 @@ $trackingHtml .
 
 $headers = "MIME-Version: 1.0\r\n" .
 "Content-type:text/html;charset=UTF-8\r\n" .
-"From: Nanook Paris <no-reply@nanook.paris>\r\n";
+"From: Nanook Paris <contact@nanook.paris>\r\n";
 
-mail($order['customer_email'], $subject, $message, $headers);
+    $mailer = new Mailer();
+
+    $mailer->send($order['customer_email'], $subject, $message);
 logEmail((int)$order['id'], $order['customer_email'], $subject);
 }
 
@@ -138,9 +141,10 @@ $message = "<html><body style='font-family:sans-serif;'>" .
 
 $headers = "MIME-Version: 1.0\r\n" .
 "Content-type:text/html;charset=UTF-8\r\n" .
-"From: Nanook Paris <no-reply@nanook.paris>\r\n";
+"From: Nanook Paris <contact@nanook.paris>\r\n";
 
-mail($order['customer_email'], $subject, $message, $headers);
+    $mailer = new Mailer();
+    $mailer->send($order['customer_email'], $subject, $message);
 logEmail((int)$order['id'], $order['customer_email'], $subject);
 }
 

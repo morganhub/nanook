@@ -1,239 +1,157 @@
 <?php
-// EXEMPLE d’en-tête de page admin (products.php, orders.php, etc.)
-
+// admin/index.php
 declare(strict_types=1);
 
-$pageTitle = 'Nanook - admin';
-$activeMenu = 'index';
-require __DIR__ . '/_header.php';
+// On inclut le bootstrap pour vérifier la session
+require_once __DIR__ . '/api/_bootstrap.php';
+
+// 1. REDIRECTION AUTOMATIQUE SI DÉJÀ CONNECTÉ
+// On vérifie directement si l'ID de l'admin est présent en session
+if (isset($_SESSION['nanook_admin_id'])) {
+    header('Location: /admin/orders.php');
+    exit;
+}
 ?>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nanook Admin - Connexion</title>
     <style>
-        * { box-sizing: border-box; }
         body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: #f5f5f5;
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
             margin: 0;
-            padding: 0;
         }
-        .container {
-            max-width: 420px;
-            margin: 80px auto;
-            background: #ffffff;
-            padding: 24px 28px;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
         }
-        h1 {
-            font-size: 20px;
-            margin: 0 0 4px;
+        .brand {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            margin-bottom: 30px;
+            display: block;
+            color: #111827;
+            text-transform: uppercase;
         }
-        .subtitle {
-            font-size: 13px;
-            color: #6b7280;
-            margin-bottom: 18px;
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
         }
         label {
             display: block;
-            font-size: 14px;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #374151;
         }
-        input[type="email"],
-        input[type="password"] {
+        input {
             width: 100%;
-            padding: 10px 12px;
-            margin-bottom: 12px;
-            border-radius: 4px;
+            padding: 10px;
             border: 1px solid #d1d5db;
+            border-radius: 6px;
             font-size: 14px;
-        }
-        input[type="email"]:focus,
-        input[type="password"]:focus {
-            outline: none;
-            border-color: #111827;
+            box-sizing: border-box;
         }
         button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 16px;
-            border-radius: 4px;
-            border: none;
+            width: 100%;
+            padding: 12px;
             background: #111827;
-            color: #ffffff;
+            color: white;
+            border: none;
+            border-radius: 6px;
             font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
+            margin-top: 10px;
         }
-        button[disabled] {
-            opacity: 0.6;
-            cursor: default;
+        button:hover {
+            background: #000;
         }
         .error {
+            background: #fee2e2;
             color: #b91c1c;
+            padding: 10px;
+            border-radius: 6px;
             font-size: 13px;
-            margin-bottom: 8px;
-        }
-        .success {
-            color: #15803d;
-            font-size: 13px;
-            margin-bottom: 8px;
-        }
-        .hidden {
+            margin-bottom: 20px;
             display: none;
-        }
-        .admin-area {
-            margin-top: 16px;
-            padding-top: 12px;
-            border-top: 1px solid #e5e7eb;
-            font-size: 14px;
-        }
-        .admin-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-        .admin-email {
-            font-weight: 500;
-        }
-        .logout-btn {
-            background: #b91c1c;
-        }
-        .brand {
-            font-weight: 600;
-            letter-spacing: 0.04em;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1><span class="brand">NANOOK</span> · Admin</h1>
-    <div class="subtitle">Connexion à l’espace de gestion.</div>
 
-    <div id="message" class="hidden"></div>
+<div class="login-card">
+    <span class="brand">Nanook</span>
+
+    <div id="errorMsg" class="error"></div>
 
     <form id="loginForm">
-        <label for="loginEmail">E-mail</label>
-        <input type="email" id="loginEmail" name="email" autocomplete="username" required>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required autofocus>
+        </div>
 
-        <label for="loginPassword">Mot de passe</label>
-        <input type="password" id="loginPassword" name="password" autocomplete="current-password" required>
+        <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <input type="password" id="password" name="password" required>
+        </div>
 
-        <button type="submit" id="loginButton">Se connecter</button>
+        <button type="submit" id="btnSubmit">Se connecter</button>
     </form>
-
-    <div id="adminArea" class="admin-area hidden">
-        <div class="admin-header">
-            <span class="admin-email" id="adminEmail"></span>
-            <button type="button" class="logout-btn" id="logoutButton">Se déconnecter</button>
-        </div>
-        <div>
-            Zone protégée admin (à remplacer par la gestion produits / commandes / etc.).
-        </div>
-    </div>
 </div>
 
 <script>
-    const apiBaseUrl = '/admin/api';
-    const loginForm = document.getElementById('loginForm');
-    const loginButton = document.getElementById('loginButton');
-    const messageDiv = document.getElementById('message');
-    const adminArea = document.getElementById('adminArea');
-    const adminEmailSpan = document.getElementById('adminEmail');
-    const logoutButton = document.getElementById('logoutButton');
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
 
-    function showMessage(text, type) {
-        if (!text) {
-            messageDiv.textContent = '';
-            messageDiv.className = 'hidden';
-            return;
-        }
-        messageDiv.textContent = text;
-        messageDiv.className = type === 'error' ? 'error' : 'success';
-    }
+        const btn = document.getElementById('btnSubmit');
+        const err = document.getElementById('errorMsg');
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
 
-    async function fetchCurrentAdmin() {
-        try {
-            const res = await fetch(`${apiBaseUrl}/me.php`, {
-                method: 'GET',
-                credentials: 'include'
-            });
-            const data = await res.json();
-            if (data.authenticated) {
-                adminEmailSpan.textContent = data.admin.email;
-                adminArea.classList.remove('hidden');
-                loginForm.classList.add('hidden');
-            } else {
-                adminArea.classList.add('hidden');
-                loginForm.classList.remove('hidden');
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    }
-
-    loginForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        showMessage('', '');
-        loginButton.disabled = true;
-
-        const emailInput = document.getElementById('loginEmail');
-        const passwordInput = document.getElementById('loginPassword');
-
-        let payload = {
-            email: emailInput.value,
-            password: passwordInput.value
-        };
+        btn.disabled = true;
+        btn.textContent = 'Connexion...';
+        err.style.display = 'none';
 
         try {
-            const res = await fetch(`${apiBaseUrl}/login.php`, {
+            const response = await fetch('/admin/api/login.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                credentials: 'include',
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ email, password })
             });
 
-            const data = await res.json();
+            const data = await response.json();
 
-            if (!res.ok || !data.success) {
-                showMessage('Identifiants invalides.', 'error');
-                loginButton.disabled = false;
-                return;
-            }
-
-            showMessage('Connexion réussie.', 'success');
-            emailInput.value = '';
-            passwordInput.value = '';
-
-            await fetchCurrentAdmin();
-        } catch (error) {
-            console.error(error);
-            showMessage('Erreur de connexion au serveur.', 'error');
-        } finally {
-            loginButton.disabled = false;
-        }
-    });
-
-    logoutButton.addEventListener('click', async () => {
-        try {
-            const res = await fetch(`${apiBaseUrl}/logout.php`, {
-                method: 'POST',
-                credentials: 'include'
-            });
-            const data = await res.json();
             if (data.success) {
-                showMessage('Déconnexion effectuée.', 'success');
-                adminArea.classList.add('hidden');
-                loginForm.classList.remove('hidden');
+                // 2. REDIRECTION APRÈS SUCCÈS JS
+                window.location.href = '/admin/orders.php';
+            } else {
+                throw new Error(data.error || 'Identifiants incorrects');
             }
         } catch (error) {
             console.error(error);
-            showMessage('Erreur lors de la déconnexion.', 'error');
+            err.textContent = 'Erreur : ' + error.message;
+            err.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Se connecter';
         }
     });
-
-    fetchCurrentAdmin();
 </script>
-<?php
-require __DIR__ . '/_footer.php';
+
+</body>
+</html>

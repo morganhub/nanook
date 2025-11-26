@@ -26,6 +26,7 @@ $stmt = $pdo->prepare(
          price,
          stock_quantity,
          allow_preorder_when_oos,
+         availability_date,
          is_active,
          display_order,
          created_at,
@@ -39,7 +40,7 @@ $rows = $stmt->fetchAll();
 
 foreach ($rows as &$row) {
     $row['id'] = (int)$row['id'];
-    $row['price'] = $row['price'] !== null ? (int)$row['price'] : null;
+    $row['price'] = $row['price'] !== null ? (float)$row['price'] : null;
     $row['stock_quantity'] = (int)$row['stock_quantity'];
     $row['allow_preorder_when_oos'] = (int)$row['allow_preorder_when_oos'];
     $row['is_active'] = (int)$row['is_active'];

@@ -25,27 +25,25 @@ $shortDescription = isset($input['short_description']) ? trim((string)$input['sh
 $longDescription = isset($input['long_description']) ? trim((string)$input['long_description']) : '';
 $priceRaw = isset($input['price']) ? trim((string)$input['price']) : '0';
 
-// accepte "45,9" ou "45.9"
+// Prix
 $priceNormalized = str_replace(',', '.', $priceRaw);
-
-// on convertit et on arrondit à 2 décimales
 $price = round((float)$priceNormalized, 2);
+
 $stockQuantity = isset($input['stock_quantity']) ? (int)$input['stock_quantity'] : 0;
 $allowPreorder = !empty($input['allow_preorder_when_oos']) ? 1 : 0;
 $isActive = !empty($input['is_active']) ? 1 : 0;
 $displayOrder = isset($input['display_order']) ? (int)$input['display_order'] : 0;
 $categoryIds = isset($input['category_ids']) && is_array($input['category_ids']) ? $input['category_ids'] : [];
 
+// Date de disponibilité (peut être null ou vide)
+$availabilityDate = !empty($input['availability_date']) ? $input['availability_date'] : null;
+
 if ($name === '' || $slug === '') {
     jsonResponse(['error' => 'name_and_slug_required'], 400);
 }
 
-if ($price < 0) {
-    $price = 0;
-}
-if ($stockQuantity < 0) {
-    $stockQuantity = 0;
-}
+if ($price < 0) $price = 0;
+if ($stockQuantity < 0) $stockQuantity = 0;
 
 $categoryIdsClean = [];
 foreach ($categoryIds as $cid) {
@@ -69,6 +67,7 @@ try {
                  price = :price,
                  stock_quantity = :stock_quantity,
                  allow_preorder_when_oos = :allow_preorder_when_oos,
+                 availability_date = :availability_date,
                  is_active = :is_active,
                  display_order = :display_order,
                  updated_at = NOW()
@@ -82,6 +81,7 @@ try {
             ':price' => $price,
             ':stock_quantity' => $stockQuantity,
             ':allow_preorder_when_oos' => $allowPreorder,
+            ':availability_date' => $availabilityDate,
             ':is_active' => $isActive,
             ':display_order' => $displayOrder,
             ':id' => $id,
@@ -93,10 +93,10 @@ try {
         $stmt = $pdo->prepare(
             'INSERT INTO nanook_products
             (name, slug, short_description, long_description, price, stock_quantity,
-             allow_preorder_when_oos, is_active, display_order, created_at, updated_at)
+             allow_preorder_when_oos, availability_date, is_active, display_order, created_at, updated_at)
             VALUES
             (:name, :slug, :short_description, :long_description, :price, :stock_quantity,
-             :allow_preorder_when_oos, :is_active, :display_order, NOW(), NOW())'
+             :allow_preorder_when_oos, :availability_date, :is_active, :display_order, NOW(), NOW())'
         );
         $stmt->execute([
             ':name' => $name,
@@ -106,6 +106,7 @@ try {
             ':price' => $price,
             ':stock_quantity' => $stockQuantity,
             ':allow_preorder_when_oos' => $allowPreorder,
+            ':availability_date' => $availabilityDate,
             ':is_active' => $isActive,
             ':display_order' => $displayOrder,
         ]);
@@ -114,10 +115,8 @@ try {
         $action = 'product_create';
     }
 
-    $delStmt = $pdo->prepare(
-        'DELETE FROM nanook_product_category
-         WHERE product_id = :pid'
-    );
+    // Gestion Catégories
+    $delStmt = $pdo->prepare('DELETE FROM nanook_product_category WHERE product_id = :pid');
     $delStmt->execute([':pid' => $productId]);
 
     if (!empty($categoryIdsClean)) {

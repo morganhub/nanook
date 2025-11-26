@@ -8,7 +8,35 @@ error_reporting(E_ALL);
 ini_set('display_errors', APP_ENV === 'dev' ? '1' : '0');
 
 if (PHP_SAPI !== 'cli' && !headers_sent()) {
-    header('Content-Type: application/json; charset=utf-8');
+//    header('Content-Type: application/json; charset=utf-8');
+}
+
+function getAdminQuickStats(PDO $pdo): array {
+    $today = date('Y-m-d');
+    $firstDayMonth = date('Y-m-01');
+
+    // Visiteurs uniques TODAY (toutes pages confondues)
+    $stmtDay = $pdo->prepare("
+        SELECT COUNT(DISTINCT visitor_hash) as unique_visitors 
+        FROM nanook_page_stats 
+        WHERE visit_date = :today
+    ");
+    $stmtDay->execute([':today' => $today]);
+    $dayStats = $stmtDay->fetch(PDO::FETCH_ASSOC);
+
+    // Visiteurs uniques MONTH
+    $stmtMonth = $pdo->prepare("
+        SELECT COUNT(DISTINCT visitor_hash) as unique_visitors 
+        FROM nanook_page_stats 
+        WHERE visit_date >= :fday
+    ");
+    $stmtMonth->execute([':fday' => $firstDayMonth]);
+    $monthStats = $stmtMonth->fetch(PDO::FETCH_ASSOC);
+
+    return [
+        'day' => (int)($dayStats['unique_visitors'] ?? 0),
+        'month' => (int)($monthStats['unique_visitors'] ?? 0)
+    ];
 }
 
 /**
