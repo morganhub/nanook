@@ -1,12 +1,12 @@
 <?php
-// src/services/ProductService.php
+
 declare(strict_types=1);
 
 require_once __DIR__ . '/../config/database.php';
 
 function getProductsByCategory(PDO $pdo, string $slug): array
 {
-    // Pas de changement majeur ici, on récupère * (donc availability_date inclus)
+    
     $sql = "
         SELECT 
             p.*, 
@@ -30,7 +30,7 @@ function getProductsByCategory(PDO $pdo, string $slug): array
 
 function getHomeProducts(PDO $pdo, int $limit = 8): array
 {
-    // Pas de changement majeur ici
+    
     $sql = "
         SELECT 
             p.*, 
@@ -67,7 +67,7 @@ function generateCombinations(array $arrays): array {
 
 function getProductBySlug(PDO $pdo, string $slug): ?array
 {
-    // 1. Infos produit (récupère availability_date automatiquement via *)
+    
     $stmt = $pdo->prepare("SELECT * FROM nanook_products WHERE slug = :slug AND is_active = 1");
     $stmt->execute([':slug' => $slug]);
     $product = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -76,17 +76,17 @@ function getProductBySlug(PDO $pdo, string $slug): ?array
 
     $pid = (int)$product['id'];
 
-    // 2. Images
+    
     $stmtImg = $pdo->prepare("SELECT * FROM nanook_product_images WHERE product_id = :pid ORDER BY is_main DESC, display_order ASC");
     $stmtImg->execute([':pid' => $pid]);
     $product['images'] = $stmtImg->fetchAll(PDO::FETCH_ASSOC);
 
-    // 3. Variantes (récupère availability_date automatiquement via *)
+    
     $stmtVar = $pdo->prepare("SELECT * FROM nanook_product_variants WHERE product_id = :pid AND is_active = 1 ORDER BY display_order ASC");
     $stmtVar->execute([':pid' => $pid]);
     $product['variants'] = $stmtVar->fetchAll(PDO::FETCH_ASSOC);
 
-    // 4. Customizations
+    
     $stmtCust = $pdo->prepare("SELECT * FROM nanook_product_customizations WHERE product_id = :pid ORDER BY display_order ASC");
     $stmtCust->execute([':pid' => $pid]);
     $product['customizations'] = $stmtCust->fetchAll(PDO::FETCH_ASSOC);

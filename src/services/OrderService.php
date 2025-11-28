@@ -1,5 +1,5 @@
 <?php
-// src/services/OrderService.php
+
 declare(strict_types=1);
 
 require_once __DIR__ . '/CartService.php';
@@ -28,7 +28,7 @@ function processCheckout(array $postData)
 
         $orderNumber = 'CMD-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -4));
 
-        // --- Données Livraison ---
+        
         $deliveryMethod = $postData['delivery_method'] ?? 'shipping';
         $addr1 = ($deliveryMethod === 'pickup') ? '' : ($postData['address1'] ?? '');
         $addr2 = ($deliveryMethod === 'pickup') ? '' : ($postData['address2'] ?? '');
@@ -36,7 +36,7 @@ function processCheckout(array $postData)
         $city  = ($deliveryMethod === 'pickup') ? '' : ($postData['city'] ?? '');
         $pref  = $postData['shipping_pref'] ?? 'no_preference';
 
-        // 1. Création Commande
+        
         $stmt = $pdo->prepare("
             INSERT INTO nanook_orders 
             (order_number, status, total_amount, delivery_method, customer_first_name, customer_last_name, customer_email, shipping_address_line1, shipping_address_line2, shipping_postal_code, shipping_city, shipping_preference, created_at, updated_at)
@@ -60,7 +60,7 @@ function processCheckout(array $postData)
 
         $orderId = (int)$pdo->lastInsertId();
 
-        // 2. Création Lignes & Mouvement Stock
+        
         $stmtItem = $pdo->prepare("
             INSERT INTO nanook_order_items 
             (order_id, product_id, variant_id, product_name, variant_name, variant_sku, unit_price, quantity, line_total, is_preorder, customizations_json)
@@ -68,24 +68,24 @@ function processCheckout(array $postData)
             (:oid, :pid, :vid, :pname, :vname, :sku, :uprice, :qty, :ltotal, :is_preorder, :cust_json)
         ");
 
-        // Préparation requêtes Stock
+        
         $stmtStockVar = $pdo->prepare("UPDATE nanook_product_variants SET stock_quantity = stock_quantity - :qty WHERE id = :id");
         $stmtStockProd = $pdo->prepare("UPDATE nanook_products SET stock_quantity = stock_quantity - :qty WHERE id = :id");
 
-        // Préparation récupération SKU frais
+        
         $stmtGetSku = $pdo->prepare("SELECT sku FROM nanook_product_variants WHERE id = ?");
 
         foreach ($cart['items'] as $item) {
             $variantId = !empty($item['variant_id']) ? (int)$item['variant_id'] : null;
             $qty = (int)$item['quantity'];
 
-            // Récupération SKU à la source si variante
+            
             $realSku = null;
             if ($variantId) {
                 $stmtGetSku->execute([$variantId]);
                 $realSku = $stmtGetSku->fetchColumn();
             }
-            // Si toujours pas de SKU, on regarde si c'était dans le panier (fallback)
+            
             if (!$realSku && isset($item['sku'])) {
                 $realSku = $item['sku'];
             }
@@ -107,7 +107,7 @@ function processCheckout(array $postData)
                 ':cust_json' => $custJson
             ]);
 
-            // Décrémentation Stock
+            
             if ($variantId) {
                 $stmtStockVar->execute([':qty' => $qty, ':id' => $variantId]);
             } else {
@@ -115,13 +115,13 @@ function processCheckout(array $postData)
             }
         }
 
-        // 3. Log Email Admin (Interne)
+        
         $pdo->prepare("INSERT INTO nanook_email_logs (order_id, recipient_email, subject, sent_at) VALUES (?, ?, ?, NOW())")
             ->execute([$orderId, $postData['email'], "Confirmation de commande $orderNumber"]);
 
         $pdo->commit();
 
-        // 4. Envoi Emails (Client + Admin)
+        
         try {
             sendOrderEmails($postData, $cart, $orderNumber, $orderId, $deliveryMethod);
         } catch (Exception $e) {
@@ -144,7 +144,7 @@ function sendOrderEmails($customer, $cart, $orderNumber, $orderId, $deliveryMeth
     $toClient = $customer['email'];
     $toAdmin = 'ornella1984@hotmail.com';
 
-    // Templates HTML
+    
     $addressHtml = "";
     $adminAddrInfo = "";
 
@@ -157,7 +157,7 @@ function sendOrderEmails($customer, $cart, $orderNumber, $orderId, $deliveryMeth
         $adminAddrInfo = "<strong>RETRAIT MAINS PROPRES</strong>";
     }
 
-    // Liste Client
+    
     $itemsClient = "<ul style='padding-left:20px;'>";
     foreach ($cart['items'] as $item) {
         $varTxt = $item['variant_name'] ? " (" . htmlspecialchars($item['variant_name']) . ")" : "";
@@ -166,7 +166,7 @@ function sendOrderEmails($customer, $cart, $orderNumber, $orderId, $deliveryMeth
     }
     $itemsClient .= "</ul>";
 
-    // Liste Admin
+    
     $itemsAdmin = "<table style='width:100%; border-collapse:collapse;'>";
     foreach ($cart['items'] as $item) {
         $status = (!empty($item['is_preorder'])) ? "<b style='color:orange'>PRECO</b>" : "<b style='color:green'>STOCK</b>";
@@ -174,7 +174,7 @@ function sendOrderEmails($customer, $cart, $orderNumber, $orderId, $deliveryMeth
     }
     $itemsAdmin .= "</table>";
 
-    // Sujets & Corps
+    
     $subjectClient = "Confirmation de commande Nanook - $orderNumber";
     $bodyClient = "<html><body style='font-family:sans-serif; color:#333;'>
         <h1 style='color:#1A1A2E; border-bottom:2px solid #C18C5D;'>Merci !</h1>
@@ -200,7 +200,7 @@ function sendOrderEmails($customer, $cart, $orderNumber, $orderId, $deliveryMeth
         $mailer->send($toClient, $subjectClient, $bodyClient);
         $mailer->send($toAdmin, $subjectAdmin, $bodyAdmin);
     } else {
-        // Fallback
+        
         $headers = "Content-type:text/html;charset=UTF-8\r\nFrom: Nanook Paris <contact@nanook.paris>";
         @mail($toClient, $subjectClient, $bodyClient, $headers);
         @mail($toAdmin, $subjectAdmin, $bodyAdmin, $headers);

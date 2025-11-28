@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 $pageTitle = 'Pages CMS';
-$activeMenu = 'pages'; // Ajoutez ce cas dans admin/_header.php pour l'highlight
+$activeMenu = 'pages'; 
 require __DIR__ . '/_header.php';
 ?>
     <div class="page">

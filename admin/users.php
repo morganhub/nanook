@@ -1,9 +1,9 @@
 <?php
-// admin/users.php
+
 declare(strict_types=1);
 
 $pageTitle = 'Utilisateurs Admin';
-$activeMenu = 'users'; // Pensez à ajouter ce menu dans _header.php plus tard
+$activeMenu = 'users'; 
 require __DIR__ . '/_header.php';
 ?>
 
@@ -50,7 +50,7 @@ require __DIR__ . '/_header.php';
 
                 const roleLabel = u.is_super_admin ? 'Super Admin' : 'Admin';
 
-                // Affichage fréquence rapport
+                
                 let reportInfo = '<span class="badge badge-gray">Jamais</span>';
                 if (u.report_frequency !== 'never') {
                     const freqLabels = { daily: 'Quotidien', weekly: 'Hebdo', monthly: 'Mensuel' };

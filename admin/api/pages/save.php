@@ -12,7 +12,7 @@ $id = isset($input['id']) ? (int)$input['id'] : 0;
 $title = trim($input['title'] ?? '');
 $slug = trim($input['slug'] ?? '');
 $chapeau = trim($input['chapeau'] ?? '');
-$content = $input['content'] ?? ''; // HTML CKEditor
+$content = $input['content'] ?? ''; 
 $isActive = !empty($input['is_active']) ? 1 : 0;
 
 if (!$title || !$slug) jsonResponse(['error' => 'missing_fields'], 400);

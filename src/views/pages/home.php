@@ -1,7 +1,7 @@
 <?php
-// src/views/pages/home.php
 
-// On s'assure que le service est chargé (si index.php ne l'a pas fait, ceinture et bretelles)
+
+
 require_once __DIR__ . '/../../services/ProductService.php';
 
 $pdo = getPdo();
@@ -27,11 +27,11 @@ $products = getHomeProducts($pdo);
     <div class="nk-grid">
         <?php foreach ($products as $index => $p): ?>
             <?php
-            // Alternance de taille (Rhythme)
+            
             $gridClass = ($index % 4 === 0 && $index !== 0) ? 'nk-span-3' : 'nk-span-3';
             $imgSrc = $p['image_path'] ? '/storage/product_images/' . $p['image_path'] : '/assets/img/placeholder.jpg';
 
-            // CORRECTION ICI : On utilise 'price' directement sans diviser par 100
+            
             $price = number_format((float)$p['price'], 2, ',', ' ') . ' €';
             ?>
 
@@ -53,9 +53,7 @@ $products = getHomeProducts($pdo);
             </a>
 
             <?php if ($index === 1): ?>
-<!--                <div class="nk-mood-block nk-span-3">-->
-<!--                    <p class="nk-mood-text">"La matière commande, la main obéit."</p>-->
-<!--                </div>-->
+
             <?php endif; ?>
 
         <?php endforeach; ?>

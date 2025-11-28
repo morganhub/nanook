@@ -1,5 +1,5 @@
 <?php
-// public/admin/api/product_images/upload.php
+
 declare(strict_types=1);
 
 require __DIR__ . '/../_bootstrap.php';
@@ -12,7 +12,7 @@ $pdo = getPdo();
 $admin = requireAdmin($pdo);
 
 $productId = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
-// NOUVEAU : Récupération de l'ID variante (optionnel)
+
 $variantId = isset($_POST['variant_id']) && $_POST['variant_id'] !== '' ? (int)$_POST['variant_id'] : null;
 
 if ($productId <= 0) {
@@ -24,7 +24,7 @@ if (empty($_FILES['image']) || !is_uploaded_file($_FILES['image']['tmp_name'])) 
 }
 
 $file = $_FILES['image'];
-$maxSize = 5 * 1024 * 1024; // 5MB
+$maxSize = 5 * 1024 * 1024; 
 
 if ($file['size'] > $maxSize) {
     jsonResponse(['error' => 'file_too_large'], 400);
@@ -63,8 +63,8 @@ if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
     jsonResponse(['error' => 'upload_failed'], 500);
 }
 
-// On vérifie s'il y a déjà des images pour définir "main" par défaut
-// Si c'est une variante, on ne se préoccupe pas trop du "main" global, mais on le gère quand même
+
+
 $stmt = $pdo->prepare('SELECT COUNT(*) AS cnt FROM nanook_product_images WHERE product_id = :pid');
 $stmt->execute([':pid' => $productId]);
 $row = $stmt->fetch();
@@ -78,9 +78,9 @@ $insert = $pdo->prepare(
 );
 $insert->execute([
     ':product_id' => $productId,
-    ':variant_id' => $variantId, // Peut être NULL
+    ':variant_id' => $variantId, 
     ':file_path' => $relativePath,
-    ':is_main' => (!$hasImages && $variantId === null) ? 1 : 0, // Main seulement si c'est la toute première image du produit parent
+    ':is_main' => (!$hasImages && $variantId === null) ? 1 : 0, 
     ':display_order' => 0,
 ]);
 

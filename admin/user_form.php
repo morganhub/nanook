@@ -1,5 +1,5 @@
 <?php
-// admin/user_form.php
+
 declare(strict_types=1);
 
 $pageTitle = 'Édition Utilisateur';

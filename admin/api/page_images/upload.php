@@ -10,7 +10,7 @@ if (!$pageId || empty($_FILES['image'])) jsonResponse(['error' => 'invalid'], 40
 $file = $_FILES['image'];
 $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
 $hash = bin2hex(random_bytes(16));
-// On utilise le même système de sharding mais dans un dossier différent
+
 $dir1 = substr($hash, 0, 2); $dir2 = substr($hash, 2, 2);
 $baseDir = dirname(__DIR__, 3) . '/storage/page_images';
 $targetDir = "$baseDir/$dir1/$dir2";

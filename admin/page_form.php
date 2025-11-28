@@ -109,7 +109,7 @@ require __DIR__ . '/_header.php';
         let editorInstance = null;
         let currentPageId = null;
 
-        // Slugify
+        
         function slugify(text) {
             return text.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
                 .replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-').replace(/^-+/, '').replace(/-+$/, '');
@@ -126,14 +126,14 @@ require __DIR__ . '/_header.php';
             document.getElementById('slugPreview').textContent = e.target.value;
         });
 
-        // Init Logic
+        
         window.addEventListener('DOMContentLoaded', async () => {
-            // Init CKEditor
+            
             try {
                 editorInstance = await window.initCkEditor('#contentInput');
             } catch(e) { console.error(e); }
 
-            // Check ID
+            
             const params = new URLSearchParams(window.location.search);
             if(params.get('id')) {
                 currentPageId = params.get('id');
@@ -156,14 +156,14 @@ require __DIR__ . '/_header.php';
                 document.getElementById('isActiveInput').checked = (p.is_active == 1);
                 if(editorInstance) editorInstance.setData(p.content || '');
 
-                // Bouton voir
+                
                 const viewBtn = document.getElementById('viewBtn');
                 viewBtn.href = `/i/${p.slug}`;
                 viewBtn.style.display = 'inline-flex';
             }
         }
 
-        // Save
+        
         document.getElementById('pageForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('saveBtn');
@@ -187,7 +187,7 @@ require __DIR__ . '/_header.php';
                 if(data.success) {
                     if(!currentPageId) window.location.href = `/admin/page_form.php?id=${data.data.id}`;
                     else {
-                        // alert('Page enregistrée');
+                        
                         loadPage(currentPageId);
                     }
                 } else {
@@ -197,7 +197,7 @@ require __DIR__ . '/_header.php';
             finally { btn.disabled = false; btn.textContent = 'Enregistrer'; }
         });
 
-        // Images
+        
         async function loadImages(pid) {
             const res = await fetch(`${apiBaseUrl}/page_images/list.php?page_id=${pid}`);
             const data = await res.json();

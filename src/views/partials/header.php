@@ -1,9 +1,9 @@
 <?php
-// src/views/partials/header.php
 
-// 1. Récupération des catégories (actives ET inactives)
+
+
 $pdoNav = getPdo();
-// On ajoute 'is_active' dans le SELECT
+
 $stmtNav = $pdoNav->query("SELECT name, slug, is_active FROM nanook_categories ORDER BY display_order ASC");
 $navCategories = $stmtNav->fetchAll(PDO::FETCH_ASSOC);
 ?>
@@ -22,7 +22,7 @@ $navCategories = $stmtNav->fetchAll(PDO::FETCH_ASSOC);
 
         <nav class="nk-menu-desktop">
             <?php foreach ($navCategories as $cat): ?>
-                <?php if ((int)$cat['is_active'] === 1): // FILTRE : Uniquement les catégories actives sur Desktop ?>
+                <?php if ((int)$cat['is_active'] === 1): ?>
                     <a href="/c/<?= htmlspecialchars($cat['slug']) ?>">
                         <?= htmlspecialchars($cat['name']) ?>
                     </a>

@@ -1,5 +1,5 @@
 <?php
-// public/admin/api/products/list.php
+
 declare(strict_types=1);
 
 require __DIR__ . '/../_bootstrap.php';
@@ -42,7 +42,7 @@ if (!empty($where)) {
     $whereSql = 'WHERE ' . implode(' AND ', $where);
 }
 
-// Count total items (Products only)
+
 $countSql = 'SELECT COUNT(DISTINCT p.id) AS total FROM nanook_products p ' . $whereSql;
 $countStmt = $pdo->prepare($countSql);
 $countStmt->execute($params);
@@ -55,7 +55,7 @@ if ($page > $totalPages) {
     $offset = ($page - 1) * $perPage;
 }
 
-// Get Products
+
 $listSql = '
     SELECT
         p.id,
@@ -83,7 +83,7 @@ $listStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $listStmt->execute();
 $products = $listStmt->fetchAll();
 
-// --- Récupération des Variantes & Catégories ---
+
 $productIds = array_column($products, 'id');
 $categoriesByProduct = [];
 $variantsByProduct = [];
@@ -91,7 +91,7 @@ $variantsByProduct = [];
 if (!empty($productIds)) {
     $inPlaceholders = implode(',', array_fill(0, count($productIds), '?'));
 
-    // 1. Categories
+    
     $catStmt = $pdo->prepare(
         'SELECT pc.product_id, c.id, c.name
          FROM nanook_product_category pc
@@ -106,8 +106,8 @@ if (!empty($productIds)) {
         $categoriesByProduct[$pid][] = ['id' => (int)$row['id'], 'name' => $row['name']];
     }
 
-    // 2. Variants (AVEC RECONSTRUCTION DU NOM)
-    // On joint les tables pour avoir "Grand - Rouge"
+    
+    
     $varStmt = $pdo->prepare(
         'SELECT 
             v.id, 
@@ -125,7 +125,7 @@ if (!empty($productIds)) {
          LEFT JOIN nanook_attributes a ON o.attribute_id = a.id
          WHERE v.product_id IN (' . $inPlaceholders . ')
          GROUP BY v.id
-         ORDER BY v.id ASC' // ou v.display_order si vous l'avez gardé
+         ORDER BY v.id ASC' 
     );
 
     $varStmt->execute($productIds);
@@ -133,22 +133,22 @@ if (!empty($productIds)) {
         $pid = (int)$row['product_id'];
         if (!isset($variantsByProduct[$pid])) $variantsByProduct[$pid] = [];
 
-        // Formatage
+        
         $row['id'] = (int)$row['id'];
         $row['price'] = ($row['price'] !== null) ? (float)$row['price'] : null;
         $row['stock_quantity'] = (int)$row['stock_quantity'];
         $row['allow_preorder_when_oos'] = (int)$row['allow_preorder_when_oos'];
         $row['is_active'] = (int)$row['is_active'];
 
-        // Fallback nom si vide (cas variante sans option)
+        
         $row['name'] = !empty($row['calculated_name']) ? $row['calculated_name'] : 'Standard';
-        unset($row['calculated_name']); // nettoyage
+        unset($row['calculated_name']); 
 
         $variantsByProduct[$pid][] = $row;
     }
 }
 
-// Assemblage final
+
 foreach ($products as &$product) {
     $pid = (int)$product['id'];
     $product['price'] = (float)$product['price'];

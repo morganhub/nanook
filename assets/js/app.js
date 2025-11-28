@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    /* --- 1. Variables Globales UI --- */
+    
     const cartDrawer = document.getElementById('cartDrawer');
     const cartOverlay = document.getElementById('cartOverlay');
     const cartTrigger = document.getElementById('cartTrigger');
@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cartBody = document.getElementById('cartBody');
     const cartTotal = document.getElementById('cartTotal');
 
-    /* --- 2. Fonctions du Panier (Drawer) --- */
+    
     function openCart() {
         if (cartDrawer && cartOverlay) {
             cartDrawer.classList.add('is-open');
@@ -28,10 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cartClose) cartClose.addEventListener('click', closeCart);
     if (cartOverlay) cartOverlay.addEventListener('click', closeCart);
 
-    /* --- 3. Logique API (Communication Serveur) --- */
+    
     async function updateCart(action, payload = {}) {
         try {
-            // Appel AJAX vers le fichier PHP à la racine
+            
             const res = await fetch('/api/cart.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -40,8 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
 
             if (data.success) {
-                renderCart(data.cart); // Mise à jour visuelle
-                if (action === 'add') openCart(); // Ouvre le tiroir après un ajout
+                renderCart(data.cart); 
+                if (action === 'add') openCart(); 
             } else {
                 console.error("Erreur serveur:", data.message);
             }
@@ -50,18 +50,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /* --- 4. Rendu Visuel du Panier (DOM) --- */
+    
     function renderCart(cart) {
-        // 1. Compteur Header
+        
         if (cartCountEl) cartCountEl.innerText = cart.count;
 
-        // 2. Liste des produits
+        
         if (cartBody) {
             if (cart.items.length === 0) {
                 cartBody.innerHTML = '<p style="text-align:center; color:#888; margin-top:50px;">Votre panier est vide.</p>';
             } else {
                 cartBody.innerHTML = cart.items.map(item => {
-                    // Logique d'image : Si image en base ? Sinon Placeholder.
+                    
                     const imgSrc = item.image
                         ? '/storage/product_images/' + item.image
                         : '/assets/img/placeholder.jpg';
@@ -84,16 +84,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // 3. Total
+        
         if (cartTotal) cartTotal.innerText = parseFloat(cart.total).toFixed(2) + ' €';
     }
 
-    // Exposer la fonction remove au scope global pour les boutons générés en HTML
+    
     window.removeItem = function(key) {
         updateCart('remove', { key });
     };
 
-    /* --- 5. Events : Ajout Rapide (Grille Homepage) --- */
+    
     const quickButtons = document.querySelectorAll('.nk-quick-add-btn');
     quickButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -102,10 +102,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasVariants = btn.dataset.hasVariants === '1';
 
             if (hasVariants) {
-                // Redirection vers la fiche produit si variantes
+                
                 window.location.href = btn.closest('a').href;
             } else {
-                // Ajout direct (Quantité 1 par défaut)
+                
                 updateCart('add', {
                     product_id: productId,
                     quantity: 1
@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    /* --- 6. Events : Formulaire Fiche Produit --- */
+    
     const addToCartForm = document.getElementById('addToCartForm');
     if (addToCartForm) {
         addToCartForm.addEventListener('submit', function(e) {
@@ -127,23 +127,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const formData = new FormData(addToCartForm);
 
-            // Construction payload propre
+            
             const payload = {
                 product_id: formData.get('product_id'),
                 variant_id: formData.get('variant_id') || null,
                 quantity: formData.get('quantity')
-                // customization: ... (si vous ajoutez des champs texte plus tard)
+                
             };
 
             updateCart('add', payload).then(() => {
-                // Reset UI
+                
                 btn.innerText = originalText;
                 btn.disabled = false;
             });
         });
     }
 
-    /* --- 7. Scroll Header --- */
+    
     const header = document.getElementById('mainHeader');
     if (header) {
         window.addEventListener('scroll', () => {
@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Initialisation : Charger le panier au démarrage
+    
     updateCart('get');
 
 
@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function openMenu() {
         if(menuDrawer && menuOverlay) {
             menuDrawer.classList.add('is-open');
-            menuDrawer.style.transform = 'translateX(0)'; // Force override
+            menuDrawer.style.transform = 'translateX(0)'; 
             menuOverlay.classList.add('is-open');
         }
     }
@@ -191,19 +191,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 (function() {
-    // Configuration
-    const DELAY_BEFORE_TRACKING = 2000; // 2 secondes
+    
+    const DELAY_BEFORE_TRACKING = 2000; 
     let hasTracked = false;
 
-    // Détection du contexte de page
-    // On essaie de deviner le type de page via l'URL ou des éléments du DOM
+    
+    
     function getPageContext() {
         const path = window.location.pathname;
 
         if (path === '/' || path === '/index.php') return { type: 'home' };
-        if (path.startsWith('/c/')) return { type: 'category', id: null }; // Idéalement récupérer l'ID via un data-attribute caché
+        if (path.startsWith('/c/')) return { type: 'category', id: null }; 
         if (path.startsWith('/p/')) {
-            // Sur la page produit, on peut souvent trouver l'ID dans un input caché
+            
             const input = document.querySelector('input[name="product_id"]');
             const pid = input ? input.value : null;
             return { type: 'product', id: pid };
@@ -220,27 +220,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const context = getPageContext();
 
-        // Envoi asynchrone silencieux (beacon ou fetch keepalive si possible, sinon fetch standard)
+        
         fetch('/api/stats.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(context),
             keepalive: true
-        }).catch(() => {}); // On ignore les erreurs silencieusement
+        }).catch(() => {}); 
 
-        // Nettoyage des écouteurs
+        
         removeListeners();
     }
 
     function initTracking() {
-        // On ajoute les écouteurs d'interaction humaine
+        
         ['mousemove', 'touchstart', 'scroll', 'keydown', 'click'].forEach(evt => {
             document.addEventListener(evt, onHumanInteraction, { passive: true, once: true });
         });
     }
 
     function onHumanInteraction() {
-        // Dès qu'une interaction est détectée, on lance l'envoi
+        
         sendStat();
     }
 
@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let currentTriggerElement = null;
         let mousePos = { x: 0, y: 0 };
 
-        // Suivi global de la souris pour la détection de sortie précise
+        
         document.addEventListener('mousemove', (e) => {
             mousePos.x = e.clientX;
             mousePos.y = e.clientY;
@@ -277,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             const rect = currentTriggerElement.getBoundingClientRect();
-            // Marge de tolérance de 2px
+            
             const isOver = (
                 mousePos.x >= rect.left - 2 &&
                 mousePos.x <= rect.right + 2 &&
@@ -300,28 +300,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const rect = element.getBoundingClientRect();
             tooltipContainer.classList.remove('arrow-right', 'arrow-left');
 
-            // Calcul dimensions
+            
             const tooltipRect = tooltipContainer.getBoundingClientRect();
 
-            // Positionnement par défaut : Droite
+            
             let left = rect.right + 10;
             const elementCenterY = rect.top + (rect.height / 2);
             let top = elementCenterY - (tooltipRect.height / 2);
             let positionIsLeft = false;
 
-            // Si ça dépasse à droite, on passe à gauche
+            
             if (left + tooltipRect.width > window.innerWidth - 10) {
                 left = rect.left - tooltipRect.width - 10;
                 positionIsLeft = true;
             }
 
-            // Gestion débordement vertical
+            
             if (top < 10) top = 10;
             else if (top + tooltipRect.height > window.innerHeight - 10) {
                 top = window.innerHeight - 10 - tooltipRect.height;
             }
 
-            // Application des classes de flèche
+            
             if (positionIsLeft) {
                 tooltipContainer.classList.add('arrow-right');
             } else {
@@ -346,47 +346,47 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // Initialisation des triggers
+        
         const attachTooltips = () => {
             document.querySelectorAll('[data-fltooltip]:not([data-fltooltip-attached])').forEach(el => {
                 el.setAttribute('data-fltooltip-attached', 'true');
 
-                // Désactivation du title natif pour éviter le doublon
+                
                 if(el.hasAttribute('title')) {
                     el.setAttribute('data-original-title', el.getAttribute('title'));
                     el.removeAttribute('title');
                 }
 
-                // Desktop (Souris)
+                
                 el.addEventListener('mouseenter', () => fltooltip_show(el));
                 el.addEventListener('mouseleave', fltooltip_hide);
 
-                // Mobile (Long Touch)
+                
                 el.addEventListener('touchstart', (e) => {
-                    // On ne bloque pas le scroll, mais on prépare le tooltip
+                    
                     mousePos.x = e.touches[0].clientX;
                     mousePos.y = e.touches[0].clientY;
 
                     touchTimer = setTimeout(() => {
                         fltooltip_show(el);
-                        // Petit retour haptique si supporté
+                        
                         if (window.navigator && window.navigator.vibrate) {
                             window.navigator.vibrate(50);
                         }
-                    }, 500); // 500ms appui long
+                    }, 500); 
                 }, { passive: true });
 
                 el.addEventListener('touchend', () => {
                     if (touchTimer) {
-                        clearTimeout(touchTimer); // Annule si on relâche trop vite (clic simple)
+                        clearTimeout(touchTimer); 
                         touchTimer = null;
                     }
-                    fltooltip_hide(); // Cache au relâchement
+                    fltooltip_hide(); 
                 });
 
                 el.addEventListener('touchmove', () => {
                     if (touchTimer) {
-                        clearTimeout(touchTimer); // Annule si on scroll
+                        clearTimeout(touchTimer); 
                         touchTimer = null;
                     }
                     fltooltip_hide();
@@ -394,19 +394,44 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         };
 
-        // Premier lancement
+        
         attachTooltips();
 
-        // (Optionnel) Observer pour les éléments chargés dynamiquement (AJAX)
-        // const observer = new MutationObserver(attachTooltips);
-        // observer.observe(document.body, { childList: true, subtree: true });
+        
+        
+        
     };
 
-    // Lancement du système
+    
     fltooltip_init();
 
 
-    // Démarrage différé "Anti-bot temporel"
+    function rot13(str) {
+        return str.replace(/[a-zA-Z]/g, function(c) {
+            return String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
+        });
+    }
+
+    const mailLinks = document.querySelectorAll('.mailme');
+
+    mailLinks.forEach(link => {
+        
+        const encoded = link.getAttribute('data-enc');
+        if (!encoded) return;
+
+        
+        const email = rot13(encoded);
+
+        
+        link.href = 'mailto:' + email;
+
+        
+        link.title = 'Envoyer un email à ' + email;
+
+        
+        link.removeAttribute('data-enc');
+    });
+    
     setTimeout(initTracking, DELAY_BEFORE_TRACKING);
 
 })();

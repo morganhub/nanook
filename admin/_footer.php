@@ -1,5 +1,5 @@
 <?php
-// public/admin/_footer.php
+
 declare(strict_types=1);
 ?>
 <footer class="admin-footer">

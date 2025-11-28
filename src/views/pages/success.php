@@ -1,9 +1,9 @@
 <?php
-// src/views/pages/success.php
+
 
 $orderNumber = $_GET['order'] ?? null;
 
-// Si quelqu'un arrive ici sans numéro de commande, on le renvoie à l'accueil
+
 if (!$orderNumber) {
     echo "<script>window.location.href='/';</script>";
     exit;

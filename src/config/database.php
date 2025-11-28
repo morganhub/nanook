@@ -1,5 +1,5 @@
 <?php
-// src/config/database.php
+
 declare(strict_types=1);
 
 require_once __DIR__ . '/env.php';
@@ -24,7 +24,7 @@ function getPdo(): PDO
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ]);
     } catch (Throwable $e) {
-        // En mode visiteur, on ne veut pas afficher l'erreur JSON brute
+        
         if (APP_ENV === 'dev') {
             die("Erreur SQL : " . $e->getMessage());
         } else {

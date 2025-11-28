@@ -1,5 +1,5 @@
 <?php
-// admin/api/attributes/option_save.php
+
 declare(strict_types=1);
 
 require __DIR__ . '/../_bootstrap.php';
@@ -13,7 +13,7 @@ $admin = requireAdmin($pdo);
 
 $input = json_decode(file_get_contents('php://input'), true);
 
-// 1. SUPPRESSION / DESACTIVATION
+
 if (isset($input['action']) && $input['action'] === 'disable') {
     $id = (int)($input['id'] ?? 0);
     if ($id <= 0) jsonResponse(['error' => 'invalid_id'], 400);
@@ -21,11 +21,11 @@ if (isset($input['action']) && $input['action'] === 'disable') {
     jsonResponse(['success' => true]);
 }
 
-// 2. SAUVEGARDE (Insert ou Update)
+
 $id = isset($input['id']) ? (int)$input['id'] : 0;
 $attrId = isset($input['attribute_id']) ? (int)$input['attribute_id'] : 0;
 $name = trim((string)($input['name'] ?? ''));
-$value = isset($input['value']) ? trim((string)$input['value']) : null; // Peut être null (suppression image)
+$value = isset($input['value']) ? trim((string)$input['value']) : null; 
 
 if ($name === '') {
     jsonResponse(['error' => 'name_required'], 400);
@@ -33,12 +33,12 @@ if ($name === '') {
 
 try {
     if ($id > 0) {
-        // UPDATE
+        
         $stmt = $pdo->prepare("UPDATE nanook_attribute_options SET name = :name, value = :val WHERE id = :id");
         $stmt->execute([':name' => $name, ':val' => $value, ':id' => $id]);
         $newId = $id;
     } else {
-        // INSERT
+        
         if ($attrId <= 0) jsonResponse(['error' => 'attribute_id_required'], 400);
         $stmt = $pdo->prepare("INSERT INTO nanook_attribute_options (attribute_id, name, value, is_active) VALUES (:aid, :name, :val, 1)");
         $stmt->execute([':aid' => $attrId, ':name' => $name, ':val' => $value]);

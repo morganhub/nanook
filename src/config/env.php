@@ -1,5 +1,5 @@
 <?php
-// src/config/env.php
+
 declare(strict_types=1);
 
 $rootDir = dirname(__DIR__, 2);

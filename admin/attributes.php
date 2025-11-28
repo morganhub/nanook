@@ -1,5 +1,5 @@
 <?php
-// admin/attributes.php
+
 declare(strict_types=1);
 
 $pageTitle = 'Dictionnaire des Attributs';
@@ -8,7 +8,7 @@ require __DIR__ . '/_header.php';
 ?>
 
     <style>
-        /* Styles Grille */
+        
         .attr-section { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 20px; overflow: hidden; }
         .attr-header { background: #f9fafb; padding: 15px 20px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
         .attr-title { font-weight: 600; font-size: 1.1rem; color: #111827; }
@@ -20,7 +20,7 @@ require __DIR__ . '/_header.php';
         .opt-card:hover { border-color: #111827; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transform: translateY(-1px); }
 
         .visual-preview { width: 40px; height: 40px; border-radius: 6px; border: 1px solid #ddd; flex-shrink: 0; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; background-color: #f3f4f6; position: relative;}
-        /* Damier pour transparence PNG */
+        
         .visual-preview.is-image { background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%); background-size: 10px 10px; background-position: 0 0, 0 5px, 5px -5px, -5px 0px; }
         .visual-preview-img { width:100%; height:100%; object-fit:cover; border-radius:5px; }
 
@@ -28,7 +28,7 @@ require __DIR__ . '/_header.php';
         .opt-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .opt-val-text { font-size: 0.75rem; color: #888; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* MODALE */
+        
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 999; backdrop-filter: blur(2px); }
         .modal-box { background: #fff; width: 100%; max-width: 450px; border-radius: 12px; padding: 25px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); animation: slideUp 0.2s ease-out; }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -150,7 +150,7 @@ require __DIR__ . '/_header.php';
                 container.appendChild(section);
 
                 const grid = section.querySelector(`#grid-${attr.id}`);
-                // Filter active only (or show disabled differently? here we show active)
+                
                 attr.options.forEach(opt => {
                     if(opt.is_active == 0) return;
                     grid.appendChild(createCard(attr, opt));
@@ -161,7 +161,7 @@ require __DIR__ . '/_header.php';
         function createCard(attr, opt) {
             const el = document.createElement('div');
             el.className = 'opt-card';
-            el.onclick = () => openEditModal(attr, opt); // LE CLIC OUVRE LA MODALE
+            el.onclick = () => openEditModal(attr, opt); 
 
             let visual = '';
             if(attr.type === 'color') {
@@ -188,7 +188,7 @@ require __DIR__ . '/_header.php';
             return el;
         }
 
-        // --- LOGIQUE MODALE ---
+        
         const modal = document.getElementById('editModal');
         const mId = document.getElementById('modalOptId');
         const mAttrId = document.getElementById('modalAttrId');
@@ -216,7 +216,7 @@ require __DIR__ . '/_header.php';
         }
 
         function openNewModal(attrId, type) {
-            mId.value = 0; // Nouveau
+            mId.value = 0; 
             mAttrId.value = attrId;
             mName.value = '';
             mType.value = type;
@@ -232,7 +232,7 @@ require __DIR__ . '/_header.php';
             mColorUI.style.display = 'none';
             mImageUI.style.display = 'none';
 
-            if(type === 'select') return; // Pas de visuel
+            if(type === 'select') return; 
 
             mVisSection.style.display = 'block';
 
@@ -245,7 +245,7 @@ require __DIR__ . '/_header.php';
 
             if(type === 'image') {
                 mImageUI.style.display = 'block';
-                mImgPath.value = value || ''; // Chemin actuel
+                mImgPath.value = value || ''; 
                 renderModalImage(value);
             }
         }
@@ -262,18 +262,18 @@ require __DIR__ . '/_header.php';
             modal.style.display = 'none';
         }
 
-        // --- LOGIQUE UPLOAD IMAGE (DANS MODALE) ---
+        
         async function handleFileSelect(input) {
             const file = input.files[0];
             if(!file) return;
 
-            // On upload tout de suite pour avoir le path (plus simple)
-            // Astuce : on peut utiliser un ID temporaire 0 si c'est une création,
-            // mais upload_texture.php a besoin d'un ID pour nommer le fichier.
-            // -> On va générer un nom basé sur timestamp dans le PHP, l'ID est moins critique pour le nommage désormais.
+            
+            
+            
+            
 
-            // Hack: Si c'est une création (ID=0), on envoie ID=0 au PHP.
-            // Assurez-vous que upload_texture.php accepte ID=0 ou génère un nom sans ID.
+            
+            
             const optId = mId.value || 0;
 
             const fd = new FormData();
@@ -285,7 +285,7 @@ require __DIR__ . '/_header.php';
                 const res = await fetch(`${apiBaseUrl}/attributes/upload_texture.php`, { method:'POST', body:fd });
                 const data = await res.json();
                 if(data.success) {
-                    mImgPath.value = data.data.file_path; // On stocke le nouveau chemin
+                    mImgPath.value = data.data.file_path; 
                     renderModalImage(data.data.file_path);
                 } else {
                     alert('Erreur upload');
@@ -295,17 +295,17 @@ require __DIR__ . '/_header.php';
         }
 
         function removeImage() {
-            mImgPath.value = ''; // Vide la valeur
+            mImgPath.value = ''; 
             renderModalImage(null);
         }
 
-        // --- SAUVEGARDE FINALE ---
+        
         async function saveOption() {
             const type = mType.value;
             let finalValue = null;
 
             if(type === 'color') finalValue = mColorInp.value;
-            if(type === 'image') finalValue = mImgPath.value; // Peut être vide si retirée
+            if(type === 'image') finalValue = mImgPath.value; 
 
             const payload = {
                 id: mId.value,
@@ -322,7 +322,7 @@ require __DIR__ . '/_header.php';
 
                 if(data.success) {
                     closeModal();
-                    loadAttributes(); // Reload grid
+                    loadAttributes(); 
                 } else {
                     alert('Erreur: ' + (data.error||'Inconnue'));
                 }

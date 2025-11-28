@@ -1,5 +1,5 @@
 <?php
-// public/admin/head.php
+
 declare(strict_types=1);
 
 if (!isset($pageTitle) || $pageTitle === '') {

@@ -1,5 +1,5 @@
 <?php
-// admin/product_form.php
+
 declare(strict_types=1);
 
 $pageTitle = 'Produit form';
@@ -7,7 +7,7 @@ $activeMenu = 'product_form';
 require __DIR__ . '/_header.php';
 ?>
     <style>
-        /* ... (Gardez vos styles CSS précédents, j'ajoute juste ceux pour les boutons d'options) ... */
+        
         .card { background: #ffffff; border-radius: 10px; padding: 18px 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); margin-bottom: 16px; }
         .form-grid { display: grid; grid-template-columns: minmax(180px, 220px) minmax(0, 1fr); column-gap: 18px; row-gap: 10px; align-items: flex-start; }
         .label-cell { text-align: right; padding-top: 8px; font-size: 13px; color: #374151; white-space: nowrap; }
@@ -44,7 +44,7 @@ require __DIR__ . '/_header.php';
         .pill-status.red { background: #fee2e2; color: #b91c1c; }
         .parent-masked-info { font-size: 13px; color: #6b7280; background: #f9fafb; border: 1px solid #e5e7eb; padding: 10px; border-radius: 6px; grid-column: 1 / -1; display: none; }
 
-        /* Nouveaux Styles Générateur */
+        
         .attributes-selector { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; }
         .attr-group { margin-bottom: 15px; }
         .attr-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
@@ -253,7 +253,7 @@ require __DIR__ . '/_header.php';
         const apiBaseUrl = '/admin/api';
         const messageEl = document.getElementById('message');
 
-        // Main Form Elements
+        
         const productForm = document.getElementById('productForm');
         const productIdInput = document.getElementById('productId');
         const nameInput = document.getElementById('nameInput');
@@ -270,7 +270,7 @@ require __DIR__ . '/_header.php';
         const parentMaskedInfo = document.getElementById('parentMaskedInfo');
         const parentFields = document.querySelectorAll('.js-parent-field');
 
-        // Customization Elements
+        
         const customizationsTableBody = document.getElementById('customizationsTableBody');
         const customizationEditor = document.getElementById('customizationEditor');
         const customizationEmptyHint = document.getElementById('customizationEmptyHint');
@@ -278,12 +278,12 @@ require __DIR__ . '/_header.php';
         let allCategories = [];
         let allAttributes = [];
         let loadedProduct = null;
-        let variantsData = []; // Stockage des objets variantes
+        let variantsData = []; 
         let customizations = [];
         let currentCustomizationOptions = [];
 
-        // --- UTILS ---
-        // La fonction qui manquait :
+        
+        
         function getQueryParam(name) {
             const params = new URLSearchParams(window.location.search);
             return params.get(name);
@@ -307,7 +307,7 @@ require __DIR__ . '/_header.php';
             if(!slugInput.value || (loadedProduct && slugInput.value === loadedProduct.slug)) slugInput.value = slugify(nameInput.value);
         });
 
-        // --- INIT ---
+        
         async function init() {
             await ensureAuth();
             await Promise.all([loadCategories(), loadAttributesDefinition()]);
@@ -319,7 +319,7 @@ require __DIR__ . '/_header.php';
             if(!data.authenticated) window.location.href='/admin/index.php';
         }
 
-        // --- CATEGORIES ---
+        
         async function loadCategories() {
             const res = await fetch(`${apiBaseUrl}/categories/list.php`);
             const data = await res.json();
@@ -338,7 +338,7 @@ require __DIR__ . '/_header.php';
             });
         }
 
-        // --- ATTRIBUTES & GENERATOR & MANAGEMENT ---
+        
         async function loadAttributesDefinition() {
             try {
                 const res = await fetch(`${apiBaseUrl}/attributes/list_full.php`);
@@ -357,7 +357,7 @@ require __DIR__ . '/_header.php';
             allAttributes.forEach(attr => {
                 const grp = document.createElement('div'); grp.className='attr-group';
 
-                // Header: Titre + Bouton Ajout
+                
                 const header = document.createElement('div'); header.className='attr-header';
                 const title = document.createElement('div'); title.className='attr-group-title'; title.textContent = attr.name;
                 const btnAdd = document.createElement('button'); btnAdd.type='button'; btnAdd.className='btn-add-opt'; btnAdd.textContent = '+ Ajouter';
@@ -367,7 +367,7 @@ require __DIR__ . '/_header.php';
                 const grid = document.createElement('div'); grid.className='attr-options-grid';
 
                 attr.options.forEach(opt => {
-                    // Filtre: On n'affiche que les actifs (sauf si on voulait un mode "voir archives")
+                    
                     if(opt.is_active == 0) return;
 
                     const lbl = document.createElement('label'); lbl.className='attr-option-label';
@@ -379,11 +379,11 @@ require __DIR__ . '/_header.php';
 
                     const span = document.createElement('span'); span.textContent = opt.name;
 
-                    // Bouton suppression (désactivation)
+                    
                     const btnDel = document.createElement('button'); btnDel.type='button'; btnDel.className='btn-del-opt'; btnDel.innerHTML = '&times;';
                     btnDel.title = "Désactiver (mettre à la poubelle)";
                     btnDel.onclick = (e) => {
-                        e.preventDefault(); // Empêche clic checkbox
+                        e.preventDefault(); 
                         disableOption(opt.id, opt.name);
                     };
 
@@ -398,7 +398,7 @@ require __DIR__ . '/_header.php';
         async function addNewOption(attrId) {
             const name = prompt("Nom de la nouvelle option (ex: Rouge, XL) :");
             if (!name) return;
-            // Valeur optionnelle (ex: hex code), on peut faire simple pour l'instant
+            
             const value = "";
 
             try {
@@ -409,7 +409,7 @@ require __DIR__ . '/_header.php';
                 });
                 const data = await res.json();
                 if(data.success) {
-                    await loadAttributesDefinition(); // Recharge la liste
+                    await loadAttributesDefinition(); 
                 } else {
                     alert("Erreur: " + (data.error || "Impossible d'ajouter"));
                 }
@@ -427,7 +427,7 @@ require __DIR__ . '/_header.php';
                 });
                 const data = await res.json();
                 if(data.success) {
-                    await loadAttributesDefinition(); // Recharge la liste (l'option disparaîtra)
+                    await loadAttributesDefinition(); 
                 }
             } catch(e) { console.error(e); }
         }
@@ -501,12 +501,12 @@ require __DIR__ . '/_header.php';
                 const inpPrice = tr.querySelector('.v-price'); inpPrice.value = v.price || '';
                 const inpStock = tr.querySelector('.v-stock'); inpStock.value = v.stock;
 
-                // Bind inputs to data array
+                
                 inpSku.onchange = e => variantsData[idx].sku = e.target.value;
                 inpPrice.onchange = e => variantsData[idx].price = e.target.value;
                 inpStock.onchange = e => variantsData[idx].stock = e.target.value;
 
-                // Details inputs
+                
                 const txtDesc = det.querySelector('.v-short-desc'); txtDesc.value = v.short_description || '';
                 txtDesc.onchange = e => variantsData[idx].short_description = e.target.value;
 
@@ -519,7 +519,7 @@ require __DIR__ . '/_header.php';
                 const inpDate = det.querySelector('.v-date'); inpDate.value = v.availability_date || '';
                 inpDate.onchange = e => variantsData[idx].availability_date = e.target.value;
 
-                // Actions
+                
                 tr.querySelector('.v-delete-btn').onclick = () => {
                     variantsData.splice(idx, 1);
                     renderVariantsTable();
@@ -541,7 +541,7 @@ require __DIR__ . '/_header.php';
             parentFields.forEach(el => el.style.display = hasVariants ? 'none' : 'block');
         }
 
-        // --- LOAD PRODUCT ---
+        
         async function loadProductIfEditing() {
             const id = getQueryParam('id');
             if(!id) return;
@@ -589,9 +589,9 @@ require __DIR__ . '/_header.php';
                     }));
                     renderVariantsTable();
 
-                    // On coche les options utilisées (même si elles sont désactivées, il faudrait idéalement les voir,
-                    // mais ici on ne voit que les actives. Si une option est utilisée mais inactive, elle ne sera pas cochée
-                    // dans le générateur, mais la variante existe bien dans le tableau du bas. C'est le comportement voulu.)
+                    
+                    
+                    
                     const usedOptIds = new Set();
                     variantsData.forEach(v => v.option_ids.forEach(oid => usedOptIds.add(oid)));
                     document.querySelectorAll('.attr-opt-check').forEach(chk => {
@@ -601,7 +601,7 @@ require __DIR__ . '/_header.php';
             } catch(e) { console.log('No variants'); }
         }
 
-        // --- IMAGES (Parent & Variant) ---
+        
         async function loadImages(context, container=null) {
             const pid = productIdInput.value;
             if(!pid) return;
@@ -676,11 +676,11 @@ require __DIR__ . '/_header.php';
             if(btn) loadVariantImages(vid, btn.closest('.v-images-container'));
         }
 
-        // --- SAVE PRODUCT ---
+        
         productForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             saveButton.disabled = true;
-            saveButton.textContent = 'Enregistrement...'; // Feedback visuel
+            saveButton.textContent = 'Enregistrement...'; 
             showMessage('Enregistrement en cours...', 'info');
 
             const payload = {
@@ -697,7 +697,7 @@ require __DIR__ . '/_header.php';
                 long_description: longDescriptionInput.value,
                 category_ids: Array.from(categoriesContainer.querySelectorAll('input:checked')).map(c=>parseInt(c.value)),
 
-                // On envoie bien le tableau complet des variantes générées
+                
                 variants: variantsData
             };
 
@@ -710,15 +710,15 @@ require __DIR__ . '/_header.php';
                 if(data.success) {
                     showMessage('Produit sauvegardé avec succès !', 'success');
 
-                    // Si c'est un NOUVEAU produit (pas d'ID au départ), on redirige vers sa page d'édition pour rester dessus
+                    
                     if(!payload.id) {
                         setTimeout(() => window.location.href=`/admin/product_form.php?id=${data.data.id}`, 500);
                     }
                     else {
-                        // Si on est DÉJÀ en édition, on ne bouge pas, on recharge juste les données (pour rafraîchir les IDs des variantes)
+                        
                         await loadProductIfEditing();
 
-                        // On remet le bouton à la normale
+                        
                         saveButton.disabled = false;
                         saveButton.textContent = 'Enregistrer le produit';
                     }
@@ -735,7 +735,7 @@ require __DIR__ . '/_header.php';
             }
         });
 
-        // --- CUSTOMIZATIONS ---
+        
         async function loadCustomizations() {
             if(!productIdInput.value) return;
             const res = await fetch(`${apiBaseUrl}/customizations/list.php?product_id=${productIdInput.value}`);

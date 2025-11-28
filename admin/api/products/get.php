@@ -1,5 +1,5 @@
 <?php
-// public/admin/api/products/get.php
+
 declare(strict_types=1);
 
 require __DIR__ . '/../_bootstrap.php';
@@ -41,12 +41,12 @@ if (!$product) {
     jsonResponse(['error' => 'not_found'], 404);
 }
 
-$product['price'] = (float)$product['price']; // Cast en float pour propreté
+$product['price'] = (float)$product['price']; 
 $product['stock_quantity'] = (int)$product['stock_quantity'];
 $product['allow_preorder_when_oos'] = (int)$product['allow_preorder_when_oos'];
 $product['is_active'] = (int)$product['is_active'];
 $product['display_order'] = (int)$product['display_order'];
-// availability_date est une string "YYYY-MM-DD" ou null, on laisse tel quel
+
 
 $catStmt = $pdo->prepare(
     'SELECT category_id

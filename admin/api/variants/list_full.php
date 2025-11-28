@@ -1,5 +1,5 @@
 <?php
-// public/admin/api/variants/list_full.php
+
 declare(strict_types=1);
 
 require __DIR__ . '/../_bootstrap.php';
@@ -17,24 +17,24 @@ if ($productId <= 0) {
 }
 
 try {
-    // 1. Récupérer les variantes brutes
+    
     $stmt = $pdo->prepare(
         'SELECT id, sku, price, stock_quantity, allow_preorder_when_oos, is_active, availability_date, short_description 
          FROM nanook_product_variants 
          WHERE product_id = :pid 
-         ORDER BY id ASC' // ou display_order si vous l'avez gardé
+         ORDER BY id ASC' 
     );
     $stmt->execute([':pid' => $productId]);
     $variants = $stmt->fetchAll();
 
-    // 2. Récupérer les options liées pour CHAQUE variante (pour reconstruire le nom "Grand - Rouge")
-    // On le fait en une requête groupée pour la performance, ou une boucle simple si peu de variantes.
-    // Option simple : boucle (car rarement > 50 variantes)
+    
+    
+    
 
     foreach ($variants as &$v) {
         $vid = (int)$v['id'];
 
-        // Récupère les noms des options liées (ex: "Rouge", "Grand")
+        
         $sqlOpts = "
             SELECT o.id, o.name 
             FROM nanook_product_variant_combinations c
@@ -47,10 +47,10 @@ try {
         $stmtOpt->execute([':vid' => $vid]);
         $options = $stmtOpt->fetchAll();
 
-        $v['option_ids'] = array_column($options, 'id'); // [12, 45]
-        $v['name'] = implode(' - ', array_column($options, 'name')); // "Grand - Rouge"
+        $v['option_ids'] = array_column($options, 'id'); 
+        $v['name'] = implode(' - ', array_column($options, 'name')); 
 
-        // Castings
+        
         $v['price'] = $v['price'] !== null ? (float)$v['price'] : null;
         $v['stock_quantity'] = (int)$v['stock_quantity'];
         $v['allow_preorder_when_oos'] = (bool)$v['allow_preorder_when_oos'];

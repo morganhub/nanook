@@ -1,11 +1,11 @@
 <?php
-// On s'assure que le service est chargé
+
 require_once __DIR__ . '/../../services/ProductService.php';
 
 $slug = $_GET['slug'] ?? '';
 $pdo = getPdo();
 
-// 1. Récupérer les infos de la catégorie (pour le titre H1)
+
 $stmt = $pdo->prepare("SELECT * FROM nanook_categories WHERE slug = :slug");
 $stmt->execute([':slug' => $slug]);
 $category = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -15,7 +15,7 @@ if (!$category) {
     return;
 }
 
-// 2. Récupérer les produits
+
 $products = getProductsByCategory($pdo, $slug);
 ?>
 
@@ -37,7 +37,7 @@ $products = getProductsByCategory($pdo, $slug);
             <?php foreach ($products as $p): ?>
                 <?php
                 $imgSrc = $p['image_path'] ? '/storage/product_images/' . $p['image_path'] : '/assets/img/placeholder.jpg';
-                // Correction Prix (Decimal Euro)
+                
                 $price = number_format((float)$p['price'], 2, ',', ' ') . ' €';
                 ?>
 

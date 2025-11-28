@@ -1,5 +1,5 @@
 <?php
-// admin/products.php
+
 declare(strict_types=1);
 
 $pageTitle = 'Produits';
@@ -19,7 +19,7 @@ require __DIR__ . '/_header.php';
         td { border-bottom: 1px solid #f3f4f6; }
         tr:last-child td { border-bottom: none; }
 
-        /* Styles spécifiques pour la hiérarchie */
+        
         tr.is-variant td { background-color: #fafafa; color: #555; border-bottom: 1px solid #eee; }
         tr.is-variant td:first-child { border-left: 3px solid #ddd; }
         .variant-indent { padding-left: 20px; position: relative; font-size: 12px; }
@@ -135,7 +135,7 @@ require __DIR__ . '/_header.php';
             for (let p of items) {
                 const hasVariants = (p.variants && p.variants.length > 0);
 
-                // 1. Ligne Parent
+                
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${p.id}</td>
@@ -158,7 +158,7 @@ require __DIR__ . '/_header.php';
                 `;
                 productsTableBody.appendChild(tr);
 
-                // 2. Lignes Variantes
+                
                 if (hasVariants) {
                     for (let v of p.variants) {
                         const trV = document.createElement('tr');

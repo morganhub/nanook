@@ -9,7 +9,7 @@ requireAdmin($pdo);
 $stmt = $pdo->query("SELECT id, title, slug, is_active, created_at FROM nanook_pages ORDER BY created_at DESC");
 $pages = $stmt->fetchAll();
 
-// Casting
+
 foreach ($pages as &$p) {
     $p['id'] = (int)$p['id'];
     $p['is_active'] = (int)$p['is_active'];

@@ -47,7 +47,7 @@ require __DIR__ . '/head.php';
             font-family: "Geist", Arial, sans-serif;
         }
 
-        /* Layout */
+        
         .page {
             width: 90%;
             max-width: 1250px;
@@ -98,7 +98,7 @@ require __DIR__ . '/head.php';
             box-shadow: 0 8px 24px rgba(0,0,0,0.06);
         }
 
-        /* Tables */
+        
         table {
             width: 100%;
             border-collapse: collapse;
@@ -130,7 +130,7 @@ require __DIR__ . '/head.php';
             border-bottom: none;
         }
 
-        /* Badges */
+        
         .badge {
             display: inline-flex;
             align-items: center;
@@ -190,7 +190,7 @@ require __DIR__ . '/head.php';
             color: #374151;
         }
 
-        /* Buttons & actions */
+        
         .btn-primary,
         .btn-secondary,
         .btn-danger {
@@ -265,7 +265,7 @@ require __DIR__ . '/head.php';
             padding-top: 20px;
         }
 
-        /* Forms */
+        
         .form-group {
             margin-bottom: 15px;
         }
@@ -331,7 +331,7 @@ require __DIR__ . '/head.php';
             margin-top: 4px;
         }
 
-        /* Messages */
+        
         .message {
             margin-bottom: 8px;
             font-size: 13px;
@@ -361,7 +361,7 @@ require __DIR__ . '/head.php';
             margin-bottom: 8px;
         }
 
-        /* Links */
+        
         a.link {
             color: #111827;
             text-decoration: none;
@@ -371,7 +371,7 @@ require __DIR__ . '/head.php';
             text-decoration: underline;
         }
 
-        /* Filters & pagination */
+        
         .filters {
             display: flex;
             flex-wrap: wrap;
@@ -397,7 +397,7 @@ require __DIR__ . '/head.php';
         a:hover {
             text-decoration: unset;
         }
-        /* Login/admin layout */
+        
         h1 {
             font-size: 20px;
             margin: 0 0 4px;
@@ -543,11 +543,11 @@ require __DIR__ . '/head.php';
         }
 
         .logout-btn {
-            /*background: #b91c1c;*/
+            
             font-size:12px;
         }
 
-        /* Overlay & modal */
+        
         .overlay {
             position: fixed;
             inset: 0;
@@ -597,7 +597,7 @@ require __DIR__ . '/head.php';
             margin-top: 8px;
         }
 
-        /* Responsive */
+        
         @media (max-width: 768px) {
             .page-header {
                 flex-direction: column;
@@ -644,6 +644,10 @@ require __DIR__ . '/head.php';
            class="admin-nav-link<?php echo $activeMenu === 'attributes' ? ' admin-nav-link--active' : ''; ?>">
             Attributs
         </a>
+        <a href="/admin/newsletter.php"
+           class="admin-nav-link<?php echo $activeMenu === 'newsletter' ? ' admin-nav-link--active' : ''; ?>">
+            Inscrits NL
+        </a>
         <a href="/admin/pages.php"
            class="admin-nav-link<?php echo $activeMenu === 'pages' ? ' admin-nav-link--active' : ''; ?>">
             Pages
@@ -678,7 +682,7 @@ require __DIR__ . '/head.php';
             window.location.href = '/admin/index.php';
         } catch (e) {
             console.error(e);
-            window.location.href = '/admin/index.php'; // Fallback
+            window.location.href = '/admin/index.php'; 
         }
     });
 </script>

@@ -1,5 +1,5 @@
 <?php
-// public/admin/api/orders/get.php
+
 declare(strict_types=1);
 
 require __DIR__ . '/../_bootstrap.php';

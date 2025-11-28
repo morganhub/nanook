@@ -1,5 +1,5 @@
 <?php
-// public/admin/api/customizations/options_save.php
+
 declare(strict_types=1);
 
 require __DIR__ . '/../_bootstrap.php';

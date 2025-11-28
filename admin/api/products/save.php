@@ -1,5 +1,5 @@
 <?php
-// public/admin/api/products/save.php
+
 declare(strict_types=1);
 
 require __DIR__ . '/../_bootstrap.php';
@@ -17,14 +17,14 @@ if (!is_array($input)) {
     jsonResponse(['error' => 'invalid_payload'], 400);
 }
 
-// --- 1. Données Produit Parent ---
+
 $id = isset($input['id']) ? (int)$input['id'] : 0;
 $name = isset($input['name']) ? trim((string)$input['name']) : '';
 $slug = isset($input['slug']) ? trim((string)$input['slug']) : '';
 $shortDescription = isset($input['short_description']) ? trim((string)$input['short_description']) : '';
 $longDescription = isset($input['long_description']) ? trim((string)$input['long_description']) : '';
 
-// Prix Parent
+
 $priceRaw = isset($input['price']) ? trim((string)$input['price']) : '0';
 $priceNormalized = str_replace(',', '.', $priceRaw);
 $price = round((float)$priceNormalized, 2);
@@ -45,7 +45,7 @@ if ($name === '' || $slug === '') {
     jsonResponse(['error' => 'name_and_slug_required'], 400);
 }
 
-// Nettoyage IDs catégories
+
 $categoryIdsClean = [];
 foreach ($categoryIds as $cid) {
     $cidInt = (int)$cid;
@@ -56,7 +56,7 @@ $categoryIdsClean = array_values(array_unique($categoryIdsClean));
 try {
     $pdo->beginTransaction();
 
-    // --- 2. Sauvegarde Produit ---
+    
     if ($id > 0) {
         $stmt = $pdo->prepare(
             'UPDATE nanook_products
@@ -113,7 +113,7 @@ try {
         $actionLog = 'product_create';
     }
 
-    // --- 3. Sauvegarde Catégories ---
+    
     $delStmt = $pdo->prepare('DELETE FROM nanook_product_category WHERE product_id = :pid');
     $delStmt->execute([':pid' => $productId]);
 
@@ -129,11 +129,11 @@ try {
         $pdo->prepare($insSql)->execute($params);
     }
 
-    // --- 4. Sauvegarde Variantes (Nouvelle Logique) ---
+    
 
     $processedVariantIds = [];
 
-    // Prépare les requêtes variantes
+    
     $stmtInsertVar = $pdo->prepare(
         'INSERT INTO nanook_product_variants
         (product_id, sku, price, stock_quantity, allow_preorder_when_oos, is_active, availability_date, short_description, created_at, updated_at)
@@ -153,14 +153,14 @@ try {
          WHERE id = :vid AND product_id = :pid'
     );
 
-    // Prépare la gestion des combinaisons (pivot)
+    
     $stmtDelCombos = $pdo->prepare('DELETE FROM nanook_product_variant_combinations WHERE variant_id = :vid');
     $stmtInsCombo = $pdo->prepare('INSERT INTO nanook_product_variant_combinations (variant_id, option_id) VALUES (:vid, :oid)');
 
     foreach ($variantsInput as $vData) {
         $vid = isset($vData['id']) ? (int)$vData['id'] : 0;
 
-        // Données brutes variante
+        
         $vSku = trim((string)($vData['sku'] ?? ''));
         $vStock = (int)($vData['stock'] ?? 0);
         $vPreco = !empty($vData['allow_preorder']) ? 1 : 0;
@@ -168,12 +168,12 @@ try {
         $vAvail = !empty($vData['availability_date']) ? $vData['availability_date'] : null;
         $vSDesc = trim((string)($vData['short_description'] ?? ''));
 
-        // Prix : peut être null ou float
-        $vPriceVal = $vData['price']; // '10.5' ou '' ou null
+        
+        $vPriceVal = $vData['price']; 
         $vPrice = ($vPriceVal !== '' && $vPriceVal !== null) ? (float)$vPriceVal : null;
 
         if ($vid > 0) {
-            // Update
+            
             $stmtUpdateVar->execute([
                 ':sku' => $vSku,
                 ':price' => $vPrice,
@@ -187,7 +187,7 @@ try {
             ]);
             $currentVariantId = $vid;
         } else {
-            // Insert
+            
             $stmtInsertVar->execute([
                 ':pid' => $productId,
                 ':sku' => $vSku,
@@ -203,11 +203,11 @@ try {
 
         $processedVariantIds[] = $currentVariantId;
 
-        // Gestion Combinaisons (Options)
-        // 1. On nettoie les anciennes liaisons pour cette variante
+        
+        
         $stmtDelCombos->execute([':vid' => $currentVariantId]);
 
-        // 2. On insère les nouvelles (option_ids)
+        
         if (!empty($vData['option_ids']) && is_array($vData['option_ids'])) {
             foreach ($vData['option_ids'] as $oid) {
                 $oid = (int)$oid;
@@ -218,14 +218,14 @@ try {
         }
     }
 
-    // Suppression des variantes qui ne sont plus dans la liste
+    
     if (!empty($processedVariantIds)) {
         $placeholders = implode(',', array_fill(0, count($processedVariantIds), '?'));
         $sqlDelVars = "DELETE FROM nanook_product_variants WHERE product_id = ? AND id NOT IN ($placeholders)";
         $paramsDel = array_merge([$productId], $processedVariantIds);
         $pdo->prepare($sqlDelVars)->execute($paramsDel);
     } else {
-        // Si aucune variante envoyée, on supprime tout pour ce produit (cas retour à produit simple)
+        
         $pdo->prepare("DELETE FROM nanook_product_variants WHERE product_id = ?")->execute([$productId]);
     }
 

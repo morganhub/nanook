@@ -1,5 +1,5 @@
 <?php
-// admin/api/categories/status.php
+
 declare(strict_types=1);
 
 require __DIR__ . '/../_bootstrap.php';
@@ -14,7 +14,7 @@ $admin = requireAdmin($pdo);
 $input = json_decode(file_get_contents('php://input'), true);
 
 $id = isset($input['id']) ? (int)$input['id'] : 0;
-// On s'assure d'avoir un booléen (0 ou 1)
+
 $isActive = isset($input['is_active']) ? (int)$input['is_active'] : 0;
 
 if ($id <= 0) {

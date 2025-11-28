@@ -1,6 +1,6 @@
 <?php
-// public/api/cart.php
-// (Rien à changer ici, la logique a été déplacée dans le Service ci-dessus)
+
+
 declare(strict_types=1);
 
 require_once __DIR__ . '/../src/config/database.php';
@@ -15,7 +15,7 @@ $cartService = new CartService();
 try {
     if ($action === 'add') {
         $pid = (int)($input['product_id'] ?? 0);
-        // On autorise variant_id null ou int
+        
         $vid = !empty($input['variant_id']) ? (int)$input['variant_id'] : null;
         $qty = (int)($input['quantity'] ?? 1);
         $cust = $input['customization'] ?? [];
@@ -28,7 +28,7 @@ try {
         $key = $input['key'] ?? '';
         if ($key) $cartService->remove($key);
     }
-    // 'get' ne fait rien de spécial à part déclencher le retour final
+    
 
     echo json_encode([
         'success' => true,

@@ -1,5 +1,5 @@
 <?php
-// public/admin/api/product_images/list.php
+
 declare(strict_types=1);
 
 require __DIR__ . '/../_bootstrap.php';
@@ -12,7 +12,7 @@ $pdo = getPdo();
 $admin = requireAdmin($pdo);
 
 $productId = isset($_GET['product_id']) ? (int)$_GET['product_id'] : 0;
-// Filtre : 'null' (parent uniquement), int (variante spécifique), ou absent (tout)
+
 $variantFilter = $_GET['variant_id'] ?? null;
 
 if ($productId <= 0) {

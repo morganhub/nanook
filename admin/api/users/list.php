@@ -9,7 +9,7 @@ requireAdmin($pdo);
 $stmt = $pdo->query("SELECT id, username, email, is_super_admin, is_active, report_frequency, report_hour, updated_at FROM nanook_admin_users ORDER BY username ASC");
 $users = $stmt->fetchAll();
 
-// Casting propre
+
 foreach ($users as &$u) {
     $u['id'] = (int)$u['id'];
     $u['is_active'] = (int)$u['is_active'];

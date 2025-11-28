@@ -1,12 +1,12 @@
 <?php
-// admin/index.php
+
 declare(strict_types=1);
 
-// On inclut le bootstrap pour vérifier la session
+
 require_once __DIR__ . '/api/_bootstrap.php';
 
-// 1. REDIRECTION AUTOMATIQUE SI DÉJÀ CONNECTÉ
-// On vérifie directement si l'ID de l'admin est présent en session
+
+
 if (isset($_SESSION['nanook_admin_id'])) {
     header('Location: /admin/orders.php');
     exit;
@@ -138,7 +138,7 @@ if (isset($_SESSION['nanook_admin_id'])) {
             const data = await response.json();
 
             if (data.success) {
-                // 2. REDIRECTION APRÈS SUCCÈS JS
+                
                 window.location.href = '/admin/orders.php';
             } else {
                 throw new Error(data.error || 'Identifiants incorrects');

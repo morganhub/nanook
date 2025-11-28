@@ -1,5 +1,5 @@
 <?php
-// src/services/CartService.php
+
 declare(strict_types=1);
 
 require_once __DIR__ . '/../config/database.php';
@@ -18,7 +18,7 @@ class CartService
 
     public function add(int $productId, ?int $variantId, int $quantity, array $customizations = []): void
     {
-        // Clé unique pour regrouper les produits identiques dans le panier
+        
         $key = md5((string)$productId . (string)$variantId . json_encode($customizations));
 
         if (isset($_SESSION['cart'][$key])) {
@@ -60,7 +60,7 @@ class CartService
             $variantId = !empty($item['variant_id']) ? (int)$item['variant_id'] : null;
             $qtyRequested = (int)$item['quantity'];
 
-            // 1. Récupération Produit Parent
+            
             $stmt = $pdo->prepare("
                 SELECT id, name, price, slug, stock_quantity, allow_preorder_when_oos, availability_date
                 FROM nanook_products 
@@ -69,13 +69,13 @@ class CartService
             $stmt->execute([':id' => $productId]);
             $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            // Si le produit n'existe plus, on le retire du panier
+            
             if (!$product) {
                 $this->remove($key);
                 continue;
             }
 
-            // Valeurs par défaut (Parent)
+            
             $finalPrice = (float)$product['price'];
             $baseName = $product['name'];
             $variantName = null;
@@ -83,7 +83,7 @@ class CartService
             $availabilityDate = $product['availability_date'];
             $imagePath = null;
 
-            // 2. Récupération Variante (Nouveau Système)
+            
             if ($variantId) {
                 $stmtVar = $pdo->prepare("
                     SELECT id, price, stock_quantity, allow_preorder_when_oos, availability_date
@@ -94,18 +94,18 @@ class CartService
                 $variant = $stmtVar->fetch(PDO::FETCH_ASSOC);
 
                 if ($variant) {
-                    // A. Logique Prix : Variante prioritaire SI > 0
+                    
                     $vPrice = (float)$variant['price'];
                     if ($vPrice > 0) {
                         $finalPrice = $vPrice;
                     }
 
-                    // B. Stock & Dispo
+                    
                     $availableStock = (int)$variant['stock_quantity'];
                     $availabilityDate = $variant['availability_date'];
 
-                    // C. Construction du Nom Variante (ex: "Grand - Rouge")
-                    // On joint la table de pivot -> options -> attributs pour avoir l'ordre correct
+                    
+                    
                     $stmtName = $pdo->prepare("
                         SELECT o.name 
                         FROM nanook_product_variant_combinations pvc
@@ -120,10 +120,10 @@ class CartService
                     if (!empty($optionsNames)) {
                         $variantName = implode(' - ', $optionsNames);
                     } else {
-                        $variantName = "Défaut"; // Fallback si variante sans options
+                        $variantName = "Défaut"; 
                     }
 
-                    // D. Image Spécifique Variante
+                    
                     $stmtImgV = $pdo->prepare("SELECT file_path FROM nanook_product_images WHERE variant_id = :vid ORDER BY display_order ASC LIMIT 1");
                     $stmtImgV->execute([':vid' => $variantId]);
                     $imgVar = $stmtImgV->fetch();
@@ -133,7 +133,7 @@ class CartService
                 }
             }
 
-            // Fallback Image : Si pas d'image variante, on prend la principale du produit
+            
             if (!$imagePath) {
                 $stmtImgP = $pdo->prepare("SELECT file_path FROM nanook_product_images WHERE product_id = :pid AND is_main = 1 LIMIT 1");
                 $stmtImgP->execute([':pid' => $productId]);
@@ -143,7 +143,7 @@ class CartService
                 }
             }
 
-            // --- CALCUL PRÉCOMMANDE ---
+            
             $preorderCount = 0;
             if ($availableStock <= 0) {
                 $preorderCount = $qtyRequested;
@@ -155,7 +155,7 @@ class CartService
                 $globalHasPreorder = true;
             }
 
-            // Calcul Totaux Ligne
+            
             $lineTotal = $finalPrice * $qtyRequested;
             $total += $lineTotal;
             $count += $qtyRequested;
@@ -167,13 +167,13 @@ class CartService
                 'slug' => $product['slug'],
                 'image' => $imagePath,
                 'variant_id' => $variantId,
-                'variant_name' => $variantName, // Maintenant correctement rempli !
+                'variant_name' => $variantName, 
                 'quantity' => $qtyRequested,
                 'unit_price' => $finalPrice,
                 'line_total' => $lineTotal,
                 'customizations' => $item['customizations'],
 
-                // Métadonnées
+                
                 'is_preorder' => ($preorderCount > 0),
                 'preorder_count' => $preorderCount,
                 'available_stock' => $availableStock,

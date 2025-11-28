@@ -1,17 +1,10 @@
 <?php
-// public/admin/createAdminUser.php
+
 declare(strict_types=1);
 
-/**
- * Script manuel pour créer un admin avec feedback très verbeux.
- *
- * 1. Adapte $username / $email / $plainPassword ci-dessous.
- * 2. Mets APP_ENV=dev dans ton .env le temps du debug.
- * 3. Appelle ce script dans le navigateur OU en CLI : php createAdminUser.php
- * 4. Supprime-le ensuite.
- */
 
-// chemin à adapter si besoin selon ton arbo
+
+
 require __DIR__ . '/../src/config/env.php';
 
 error_reporting(E_ALL);

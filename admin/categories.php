@@ -1,5 +1,5 @@
 <?php
-// admin/categories.php
+
 declare(strict_types=1);
 
 $pageTitle = 'Catégories';
@@ -177,7 +177,7 @@ require __DIR__ . '/_header.php';
             }
         }
 
-        // Toggle Status
+        
         async function toggleCategoryStatus(id, newStatus) {
             try {
                 const res = await fetch(`${apiBaseUrl}/categories/status.php`, {
@@ -215,7 +215,7 @@ require __DIR__ . '/_header.php';
             if (!categoriesCache.length) {
                 const tr = document.createElement('tr');
                 const td = document.createElement('td');
-                td.colSpan = 7; // Ajusté pour 7 colonnes
+                td.colSpan = 7; 
                 td.textContent = 'Aucune catégorie.';
                 td.style.fontSize = '13px';
                 td.style.color = '#6b7280';
@@ -228,22 +228,22 @@ require __DIR__ . '/_header.php';
                 const tr = document.createElement('tr');
                 const parentCat = categoriesCache.find(c => c.id === cat.parent_id);
 
-                // 1. ID
+                
                 let tdId = document.createElement('td');
                 tdId.textContent = cat.id;
                 tr.appendChild(tdId);
 
-                // 2. NOM
+                
                 let tdName = document.createElement('td');
                 tdName.textContent = cat.name;
                 tr.appendChild(tdName);
 
-                // 3. STATUT (Déplacé après le nom)
+                
                 let tdStatus = document.createElement('td');
                 let statusBadge = document.createElement('button');
                 statusBadge.type = 'button';
 
-                // Note: On s'assure que is_active est un entier pour la comparaison
+                
                 if (parseInt(cat.is_active) === 1) {
                     statusBadge.className = 'badge badge-green';
                     statusBadge.textContent = 'Actif';
@@ -261,22 +261,22 @@ require __DIR__ . '/_header.php';
                 tdStatus.appendChild(statusBadge);
                 tr.appendChild(tdStatus);
 
-                // 4. SLUG
+                
                 let tdSlug = document.createElement('td');
                 tdSlug.textContent = cat.slug;
                 tr.appendChild(tdSlug);
 
-                // 5. PARENT
+                
                 let tdParent = document.createElement('td');
                 tdParent.textContent = parentCat ? parentCat.name : '-';
                 tr.appendChild(tdParent);
 
-                // 6. ORDRE
+                
                 let tdOrder = document.createElement('td');
                 tdOrder.textContent = cat.display_order ?? 0;
                 tr.appendChild(tdOrder);
 
-                // 7. ACTIONS
+                
                 let tdActions = document.createElement('td');
                 let editBtn = document.createElement('button');
                 editBtn.type = 'button';
@@ -310,14 +310,14 @@ require __DIR__ . '/_header.php';
                     showMessage('Erreur lors du chargement des catégories.', 'error');
                     return;
                 }
-                // CORRECTION IMPORTANTE : On récupère is_active ici !
+                
                 categoriesCache = data.data.map(cat => ({
                     id: cat.id,
                     name: cat.name,
                     slug: cat.slug,
                     parent_id: cat.parent_id ?? null,
                     display_order: cat.display_order ?? 0,
-                    is_active: cat.is_active // Sans ça, le statut était perdu
+                    is_active: cat.is_active 
                 }));
                 renderParentOptions();
                 renderCategories();

@@ -1,5 +1,5 @@
 <?php
-// src/views/pages/checkout.php
+
 require_once __DIR__ . '/../../services/CartService.php';
 $cartService = new CartService();
 $cartData = $cartService->getCartDetails();
@@ -12,9 +12,9 @@ if (empty($cartData['items'])) {
     return;
 }
 
-// --- LOGIQUE DE DATES & TRI ---
+
 $currentDate = date('Y-m-d');
-$cutoffDate = '2025-12-20'; // Date limite pour garantir Noël
+$cutoffDate = '2025-12-20'; 
 $showShippingOptions = ($currentDate <= $cutoffDate);
 
 $christmasLimit = '2025-12-25';
@@ -25,9 +25,9 @@ foreach ($cartData['items'] as $item) {
     $isAvailableForXmas = true;
     $dateLabel = 'En stock';
 
-    // Logique : Un item est "précommande" si le stock physique est insuffisant
+    
     if ($item['is_preorder']) {
-        // Si pas de date ou date après Noël -> Pas dispo pour Noël
+        
         if (!$item['availability_date'] || $item['availability_date'] >= $christmasLimit) {
             $isAvailableForXmas = false;
         }
@@ -198,7 +198,7 @@ foreach ($cartData['items'] as $item) {
     document.addEventListener('DOMContentLoaded', () => {
         let cartItems = <?= json_encode($jsItems) ?>;
 
-        // Elements
+        
         const methodRadios = document.querySelectorAll('input[name="delivery_method"]');
         const addressBlock = document.getElementById('addressBlock');
         const addressRequiredInputs = document.querySelectorAll('.js-addr-req');
@@ -207,7 +207,7 @@ foreach ($cartData['items'] as $item) {
         const checkoutTotalEl = document.getElementById('checkoutTotal');
         const removeButtons = document.querySelectorAll('.js-remove-btn');
 
-        // --- GESTION AFFICHAGE ADRESSE (Toggle) ---
+        
         function toggleAddress(method) {
             if (method === 'pickup') {
                 addressBlock.style.display = 'none';
@@ -225,7 +225,7 @@ foreach ($cartData['items'] as $item) {
         const checkedMethod = document.querySelector('input[name="delivery_method"]:checked');
         if(checkedMethod) toggleAddress(checkedMethod.value);
 
-        // --- GESTION FILTRE VISUEL NOEL/PLUS TARD ---
+        
         function updateCartView(mode) {
             cartItems.forEach(item => {
                 const el = document.getElementById('item-' + item.id);
@@ -257,7 +257,7 @@ foreach ($cartData['items'] as $item) {
             });
         }
 
-        // --- GESTION SUPPRESSION ---
+        
         removeButtons.forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.preventDefault();

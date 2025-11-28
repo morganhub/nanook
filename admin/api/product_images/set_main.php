@@ -1,5 +1,5 @@
 <?php
-// public/admin/api/product_images/set_main.php
+
 declare(strict_types=1);
 
 require __DIR__ . '/../_bootstrap.php';

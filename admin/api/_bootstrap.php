@@ -1,5 +1,5 @@
 <?php
-// public/admin/api/_bootstrap.php
+
 declare(strict_types=1);
 
 require __DIR__ . '/../../src/config/env.php';
@@ -8,14 +8,14 @@ error_reporting(E_ALL);
 ini_set('display_errors', APP_ENV === 'dev' ? '1' : '0');
 
 if (PHP_SAPI !== 'cli' && !headers_sent()) {
-//    header('Content-Type: application/json; charset=utf-8');
+
 }
 
 function getAdminQuickStats(PDO $pdo): array {
     $today = date('Y-m-d');
     $firstDayMonth = date('Y-m-01');
 
-    // Visiteurs uniques TODAY (toutes pages confondues)
+    
     $stmtDay = $pdo->prepare("
         SELECT COUNT(DISTINCT visitor_hash) as unique_visitors 
         FROM nanook_page_stats 
@@ -24,7 +24,7 @@ function getAdminQuickStats(PDO $pdo): array {
     $stmtDay->execute([':today' => $today]);
     $dayStats = $stmtDay->fetch(PDO::FETCH_ASSOC);
 
-    // Visiteurs uniques MONTH
+    
     $stmtMonth = $pdo->prepare("
         SELECT COUNT(DISTINCT visitor_hash) as unique_visitors 
         FROM nanook_page_stats 
@@ -39,9 +39,7 @@ function getAdminQuickStats(PDO $pdo): array {
     ];
 }
 
-/**
- * Connexion DB avec erreurs parlantes (json en dev)
- */
+
 function getPdo(): PDO
 {
     static $pdo = null;
@@ -242,7 +240,7 @@ function requireAdmin(PDO $pdo): array
     return $admin;
 }
 
-// CORS + préflight
+
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     if (isset($_SERVER['HTTP_ORIGIN'])) {
         header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);

@@ -1,12 +1,12 @@
 <?php
-// src/config/routes.php
+
 
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-// --- 1. Variables SEO par défaut (Homepage) ---
+
 $pageTitle = 'Nanook Paris | Maroquinerie Artisanale & Objets Uniques';
 $metaDescription = 'Découvrez Nanook Paris : des créations artisanales en cuir, fabriquées à la main avec passion. Sacs, accessoires et objets lifestyle.';
-$ogImage = '/assets/img/hero-nanook.jpg'; // Image par défaut pour le partage Facebook/WhatsApp
+$ogImage = '/assets/img/hero-nanook.jpg'; 
 $canonicalUrl = 'https://nanook.paris' . $requestUri;
 $jsonLd = [
     "@context" => "https://schema.org",
@@ -15,34 +15,34 @@ $jsonLd = [
     "url" => "https://nanook.paris"
 ];
 
-// Chemins vers les vues
+
 $viewPath = __DIR__ . '/../views/pages/';
 $layoutPath = __DIR__ . '/../views/layouts/base.php';
-$pageContent = null; // Sera défini ci-dessous
+$pageContent = null; 
 
-// --- 2. Routage & Logique ---
 
-// API STATS (AJAX)
-// Cette route doit être placée avant les routes de pages pour intercepter l'appel
+
+
+
 if ($requestUri === '/api/stats.php') {
     require_once __DIR__ . '/../services/StatsService.php';
-    recordVisit($pdo); // $pdo est dispo car index.php l'a initialisé
-    exit; // On arrête tout ici, on ne veut pas charger le HTML
+    recordVisit($pdo); 
+    exit; 
 }
 
-// Homepage
+
 if ($requestUri === '/' || $requestUri === '/index.php') {
     $pageContent = $viewPath . 'home.php';
     require $layoutPath;
     exit;
 }
 
-// Page Catégorie (ex: /c/sacs)
+
 if (preg_match('#^/c/([a-z0-9-]+)$#', $requestUri, $matches)) {
     $slug = $matches[1];
     $_GET['slug'] = $slug;
 
-    // Récupération rapide du nom de la catégorie pour le SEO
+    
     $stmt = $pdo->prepare("SELECT name FROM nanook_categories WHERE slug = :slug");
     $stmt->execute([':slug' => $slug]);
     $cat = $stmt->fetch();
@@ -65,11 +65,11 @@ if (preg_match('#^/i/([a-z0-9-]+)$#', $requestUri, $matches)) {
     $cmsPage = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($cmsPage) {
-        // SEO
+        
         $pageTitle = htmlspecialchars($cmsPage['title']) . ' | Nanook Paris';
         $metaDescription = $cmsPage['chapeau'] ? substr(strip_tags($cmsPage['chapeau']), 0, 160) : 'Nanook Paris - Page d\'information';
 
-        // Récupération des images
+        
         $stmtImg = $pdo->prepare("SELECT file_path FROM nanook_page_images WHERE page_id = :pid ORDER BY display_order ASC");
         $stmtImg->execute([':pid' => $cmsPage['id']]);
         $cmsPage['images'] = $stmtImg->fetchAll(PDO::FETCH_ASSOC);
@@ -80,16 +80,16 @@ if (preg_match('#^/i/([a-z0-9-]+)$#', $requestUri, $matches)) {
     }
 }
 
-// Fiche Produit (ex: /p/vide-poche-cuir)
+
 if (preg_match('#^/p/([a-z0-9-]+)$#', $requestUri, $matches)) {
     $slug = $matches[1];
     $_GET['slug'] = $slug;
 
-    // On récupère le produit UNE SEULE FOIS ici
-    $product = getProductBySlug($pdo, $slug); // J'ai renommé $productSEO en $product pour simplifier
+    
+    $product = getProductBySlug($pdo, $slug); 
 
     if ($product) {
-        // Optimisation SEO
+        
         $pageTitle = htmlspecialchars($product['name']) . ' | Nanook Paris';
         $descRaw = !empty($product['short_description']) ? $product['short_description'] : ($product['long_description'] ?? '');
         $metaDescription = substr(strip_tags($descRaw), 0, 160) . '...';
@@ -98,9 +98,9 @@ if (preg_match('#^/p/([a-z0-9-]+)$#', $requestUri, $matches)) {
             $ogImage = '/storage/product_images/' . $product['images'][0]['file_path'];
         }
 
-        // JSON-LD... (Garder votre code existant ici)
+        
 
-        // On charge la vue qui utilisera la variable $product déjà remplie !
+        
         $pageContent = $viewPath . 'product.php';
         require $layoutPath;
         exit;
@@ -116,10 +116,10 @@ if ($requestUri === '/checkout') {
 
 if ($requestUri === '/checkout/process' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     require_once __DIR__ . '/../services/OrderService.php';
-    processCheckout($_POST); // Gère la logique et redirige
+    processCheckout($_POST); 
     exit;
 }
-// Pages Statiques (Panier, Confirmation)
+
 if ($requestUri === '/panier') {
     $pageTitle = 'Votre Panier | Nanook';
     $pageContent = $viewPath . 'cart.php';
@@ -133,7 +133,7 @@ if ($requestUri === '/confirmation') {
     exit;
 }
 
-// 404 - Not Found
+
 http_response_code(404);
 $pageTitle = 'Page Introuvable';
-echo "<h1>Erreur 404</h1><p>Cette page n'existe pas.</p>"; // À remplacer par une vraie vue 404
+echo "<h1>Erreur 404</h1><p>Cette page n'existe pas.</p>"; 

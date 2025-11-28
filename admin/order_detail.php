@@ -1,5 +1,5 @@
 <?php
-// EXEMPLE d’en-tête de page admin (products.php, orders.php, etc.)
+
 
 declare(strict_types=1);
 
