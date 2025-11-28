@@ -250,6 +250,162 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+
+    const fltooltip_init = () => {
+        let tooltipContainer = document.getElementById('fltooltip_container');
+        if (!tooltipContainer) {
+            tooltipContainer = document.createElement('div');
+            tooltipContainer.id = 'fltooltip_container';
+            tooltipContainer.innerHTML = '<div id="fltooltip_content"></div><div id="fltooltip_arrow"></div>';
+            document.body.appendChild(tooltipContainer);
+        }
+
+        const tooltipContent = document.getElementById('fltooltip_content');
+        let touchTimer = null;
+        let checkInterval = null;
+        let currentTriggerElement = null;
+        let mousePos = { x: 0, y: 0 };
+
+        // Suivi global de la souris pour la détection de sortie précise
+        document.addEventListener('mousemove', (e) => {
+            mousePos.x = e.clientX;
+            mousePos.y = e.clientY;
+        });
+
+        const checkCursorOverlap = () => {
+            if (!currentTriggerElement || !tooltipContainer.classList.contains('visible')) {
+                return;
+            }
+            const rect = currentTriggerElement.getBoundingClientRect();
+            // Marge de tolérance de 2px
+            const isOver = (
+                mousePos.x >= rect.left - 2 &&
+                mousePos.x <= rect.right + 2 &&
+                mousePos.y >= rect.top - 2 &&
+                mousePos.y <= rect.bottom + 2
+            );
+
+            if (!isOver) {
+                fltooltip_hide();
+            }
+        };
+
+        const fltooltip_show = (element) => {
+            const text = element.dataset.fltooltip;
+            if (!text) return;
+
+            currentTriggerElement = element;
+            tooltipContent.innerHTML = text;
+
+            const rect = element.getBoundingClientRect();
+            tooltipContainer.classList.remove('arrow-right', 'arrow-left');
+
+            // Calcul dimensions
+            const tooltipRect = tooltipContainer.getBoundingClientRect();
+
+            // Positionnement par défaut : Droite
+            let left = rect.right + 10;
+            const elementCenterY = rect.top + (rect.height / 2);
+            let top = elementCenterY - (tooltipRect.height / 2);
+            let positionIsLeft = false;
+
+            // Si ça dépasse à droite, on passe à gauche
+            if (left + tooltipRect.width > window.innerWidth - 10) {
+                left = rect.left - tooltipRect.width - 10;
+                positionIsLeft = true;
+            }
+
+            // Gestion débordement vertical
+            if (top < 10) top = 10;
+            else if (top + tooltipRect.height > window.innerHeight - 10) {
+                top = window.innerHeight - 10 - tooltipRect.height;
+            }
+
+            // Application des classes de flèche
+            if (positionIsLeft) {
+                tooltipContainer.classList.add('arrow-right');
+            } else {
+                tooltipContainer.classList.add('arrow-left');
+            }
+
+            tooltipContainer.style.top = `${top}px`;
+            tooltipContainer.style.left = `${left}px`;
+            tooltipContainer.classList.add('visible');
+
+            if (!checkInterval) {
+                checkInterval = setInterval(checkCursorOverlap, 200);
+            }
+        };
+
+        const fltooltip_hide = () => {
+            tooltipContainer.classList.remove('visible');
+            currentTriggerElement = null;
+            if (checkInterval) {
+                clearInterval(checkInterval);
+                checkInterval = null;
+            }
+        };
+
+        // Initialisation des triggers
+        const attachTooltips = () => {
+            document.querySelectorAll('[data-fltooltip]:not([data-fltooltip-attached])').forEach(el => {
+                el.setAttribute('data-fltooltip-attached', 'true');
+
+                // Désactivation du title natif pour éviter le doublon
+                if(el.hasAttribute('title')) {
+                    el.setAttribute('data-original-title', el.getAttribute('title'));
+                    el.removeAttribute('title');
+                }
+
+                // Desktop (Souris)
+                el.addEventListener('mouseenter', () => fltooltip_show(el));
+                el.addEventListener('mouseleave', fltooltip_hide);
+
+                // Mobile (Long Touch)
+                el.addEventListener('touchstart', (e) => {
+                    // On ne bloque pas le scroll, mais on prépare le tooltip
+                    mousePos.x = e.touches[0].clientX;
+                    mousePos.y = e.touches[0].clientY;
+
+                    touchTimer = setTimeout(() => {
+                        fltooltip_show(el);
+                        // Petit retour haptique si supporté
+                        if (window.navigator && window.navigator.vibrate) {
+                            window.navigator.vibrate(50);
+                        }
+                    }, 500); // 500ms appui long
+                }, { passive: true });
+
+                el.addEventListener('touchend', () => {
+                    if (touchTimer) {
+                        clearTimeout(touchTimer); // Annule si on relâche trop vite (clic simple)
+                        touchTimer = null;
+                    }
+                    fltooltip_hide(); // Cache au relâchement
+                });
+
+                el.addEventListener('touchmove', () => {
+                    if (touchTimer) {
+                        clearTimeout(touchTimer); // Annule si on scroll
+                        touchTimer = null;
+                    }
+                    fltooltip_hide();
+                });
+            });
+        };
+
+        // Premier lancement
+        attachTooltips();
+
+        // (Optionnel) Observer pour les éléments chargés dynamiquement (AJAX)
+        // const observer = new MutationObserver(attachTooltips);
+        // observer.observe(document.body, { childList: true, subtree: true });
+    };
+
+    // Lancement du système
+    fltooltip_init();
+
+
     // Démarrage différé "Anti-bot temporel"
     setTimeout(initTracking, DELAY_BEFORE_TRACKING);
 

@@ -147,6 +147,7 @@ if ($firstVariantId && isset($product['variants'][0])) {
                 </div>
             </div>
 
+
         </div>
 
         <div class="nk-product-sidebar-wrapper">
@@ -171,22 +172,37 @@ if ($firstVariantId && isset($product['variants'][0])) {
                         <div class="nk-attributes-section">
                             <?php foreach ($attributesDisplay as $attrId => $attr): ?>
                                 <div class="nk-form-group">
-                                    <div class="nk-label"><?= htmlspecialchars($attr['name']) ?></div>
+                                    <div class="nk-label">
+                                        <?= htmlspecialchars($attr['name']) ?>
+                                        <span class="js-selected-val" style="font-weight:400; color:#666; margin-left:4px; font-size:0.9em;"></span>
+                                    </div>
+
                                     <div class="nk-attr-options <?= $attr['type'] === 'color' ? 'is-color' : 'is-box' ?>">
                                         <?php foreach ($attr['options'] as $opt): ?>
-                                            <label class="nk-attr-label" title="<?= htmlspecialchars($opt['name']) ?>">
+                                            <label class="nk-attr-label" data-fltooltip="<?= htmlspecialchars($opt['name']) ?>">
                                                 <input type="radio"
                                                        name="attr_<?= $attrId ?>"
                                                        value="<?= $opt['id'] ?>"
                                                        class="js-attr-radio"
-                                                       data-attr-id="<?= $attrId ?>">
+                                                       data-attr-id="<?= $attrId ?>"
+                                                       data-name="<?= htmlspecialchars($opt['name']) ?>">
+
+                                                <?php
+                                                // --- CORRECTION DU BUG 403 Forbidden ---
+                                                // On vérifie que la valeur existe ET qu'elle ne commence pas par '#'
+                                                // Si c'est un hexadécimal, on ne doit PAS l'utiliser dans url()
+                                                $val = $opt['value'];
+                                                $isHex = ($val && strpos($val, '#') === 0);
+                                                ?>
 
                                                 <?php if ($attr['type'] === 'color'): ?>
-                                                    <span class="nk-swatch-color" style="background-color: <?= htmlspecialchars($opt['value']) ?>;"></span>
-                                                <?php elseif ($attr['type'] === 'image' && $opt['value']): ?>
-                                                    <span class="nk-swatch-box" style="background-image: url('/storage/<?= htmlspecialchars($opt['value']) ?>'); background-size:cover; text-indent:-9999px; width:40px; height:40px; border:none; box-shadow:inset 0 0 0 1px #e5e5e5;">
+                                                    <span class="nk-swatch-color" style="background-color: <?= htmlspecialchars($val) ?>;"></span>
+
+                                                <?php elseif ($attr['type'] === 'image' && $val && !$isHex): ?>
+                                                    <span class="nk-swatch-box" style="background-image: url('/storage/<?= htmlspecialchars($val) ?>'); background-size:cover; text-indent:-9999px; border-radius:16px; width:60px; height:60px; border:none; box-shadow:inset 0 0 0 1px #e5e5e5;">
                                                         <?= htmlspecialchars($opt['name']) ?>
                                                     </span>
+
                                                 <?php else: ?>
                                                     <span class="nk-swatch-box"><?= htmlspecialchars($opt['name']) ?></span>
                                                 <?php endif; ?>
@@ -229,7 +245,7 @@ if ($firstVariantId && isset($product['variants'][0])) {
                             <button type="button" class="js-qty-btn" data-action="inc">+</button>
                         </div>
 
-                        <button type="submit" class="nk-btn-add" id="btnAddToCart" <?= $hasVariants ? 'disabled' : '' ?>>
+                        <button type="submit" class="nk-btn-add" data-fltooltip="Ajouter ce produit au panier" id="btnAddToCart" <?= $hasVariants ? 'disabled' : '' ?>>
                             <?= $hasVariants ? 'Choisir les options' : 'Ajouter au panier' ?>
                         </button>
                     </div>
@@ -253,7 +269,7 @@ if ($firstVariantId && isset($product['variants'][0])) {
 
     .nk-main-image-wrapper {
         position: relative; width: 100%; aspect-ratio: 4/5;
-        overflow: hidden; background: #f9f9f9; cursor: crosshair; /* Zoom cursor optional */
+        overflow: hidden; background: #f9f9f9; cursor: crosshair;
     }
     .nk-main-image-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.3s; }
 
@@ -284,7 +300,7 @@ if ($firstVariantId && isset($product['variants'][0])) {
 </style>
 
 <script>
-    // Données Parent (inclut la date pour les produits simples)
+    // Données Parent
     const productBase = {
         price: <?= (float)$product['price'] ?>,
         stock: <?= (int)$product['stock_quantity'] ?>,
@@ -306,22 +322,18 @@ if ($firstVariantId && isset($product['variants'][0])) {
         const variantInput = document.getElementById('selectedVariantId');
         const quantityInput = document.getElementById('quantityInput');
 
-        // Elements Galerie JS
+        // Galerie JS
         const mainImgWrap = document.querySelector('.nk-main-image-wrapper');
         const mainImg = document.getElementById('mainImg');
         const thumbsContainer = document.getElementById('thumbsContainer');
 
-        // --- LOGIQUE GALERIE ---
-        let currentImages = []; // Liste des images en cours
+        let currentImages = [];
         let currentIdx = 0;
         let sliderInterval = null;
         let touchStartX = 0;
         let touchEndX = 0;
 
-        // Init avec images PHP initiales (on les scrape du DOM ou on utilise productBase/variant)
-        // Le plus propre est de relire productBase.images au démarrage ou celles injectées
-        // Pour faire simple : on va laisser updateGallery s'occuper de tout.
-
+        // Init avec images PHP initiales
         function startSlider() {
             stopSlider();
             sliderInterval = setInterval(() => {
@@ -335,21 +347,17 @@ if ($firstVariantId && isset($product['variants'][0])) {
 
         function showImage(index) {
             if(!currentImages || currentImages.length === 0) return;
-            // Boucle
             if(index >= currentImages.length) index = 0;
             if(index < 0) index = currentImages.length - 1;
 
             currentIdx = index;
 
-            // 1. Update Main
-            // Petit fade effect manuel (optionnel)
             mainImg.style.opacity = '0.8';
             setTimeout(() => {
                 mainImg.src = currentImages[currentIdx];
                 mainImg.style.opacity = '1';
             }, 100);
 
-            // 2. Update Thumbs Active
             document.querySelectorAll('.nk-thumb').forEach(t => t.classList.remove('active'));
             const activeThumb = document.querySelector(`.nk-thumb[data-index="${currentIdx}"]`);
             if(activeThumb) {
@@ -363,12 +371,10 @@ if ($firstVariantId && isset($product['variants'][0])) {
 
         function initGallery(imagesData) {
             stopSlider();
-            // Préparer les URLs
             currentImages = imagesData.map(img => {
                 return img.file_path ? '/storage/product_images/' + img.file_path : '/assets/img/placeholder.jpg';
             });
 
-            // Reconstruire le DOM des thumbnails
             thumbsContainer.innerHTML = '';
             currentImages.forEach((src, idx) => {
                 const thumb = document.createElement('div');
@@ -376,25 +382,21 @@ if ($firstVariantId && isset($product['variants'][0])) {
                 thumb.dataset.index = idx;
                 thumb.innerHTML = `<img src="${src}" alt="">`;
                 thumb.addEventListener('click', () => {
-                    stopSlider(); // Interaction utilisateur arrête l'auto
+                    stopSlider();
                     showImage(idx);
                 });
                 thumbsContainer.appendChild(thumb);
             });
 
-            // Afficher la 1ère
             currentIdx = 0;
             if(currentImages.length > 0) mainImg.src = currentImages[0];
-
-            // Démarrer auto-play si plusieurs images
             if(currentImages.length > 1) startSlider();
         }
 
-        // SWIPE MOBILE
         if(mainImgWrap) {
             mainImgWrap.addEventListener('touchstart', e => {
                 touchStartX = e.changedTouches[0].screenX;
-                stopSlider(); // On arrête le timer quand on touche
+                stopSlider();
             }, {passive: true});
 
             mainImgWrap.addEventListener('touchend', e => {
@@ -404,27 +406,14 @@ if ($firstVariantId && isset($product['variants'][0])) {
         }
 
         function handleSwipe() {
-            const threshold = 50; // pixels min pour swipe
-            if (touchStartX - touchEndX > threshold) {
-                nextImage(); // Swipe Gauche -> Suivant
-            }
-            if (touchEndX - touchStartX > threshold) {
-                prevImage(); // Swipe Droite -> Précédent
-            }
+            const threshold = 50;
+            if (touchStartX - touchEndX > threshold) nextImage();
+            if (touchEndX - touchStartX > threshold) prevImage();
         }
 
-        // --- INIT AU CHARGEMENT ---
-        // On initialise la galerie avec les images par défaut (Parent ou 1ère variante)
-        // On utilise la variable PHP injectée
-        // Astuce : on regarde si une variante est pré-sélectionnée par le PHP (firstVariantId)
-        // Sinon on prend productBase.images
-
-        // Pour faire simple et robuste, on appelle initGallery avec les images PHP initiales
-        // On va parser le JSON des images communes pour commencer
         initGallery(productBase.images);
 
-
-        // --- LOGIQUE VARIANTES / BOUTON (Code précédent conservé et relié) ---
+        // VARIANTES
         const formatPrice = (p) => new Intl.NumberFormat('fr-FR', {style:'decimal', minimumFractionDigits:2}).format(p) + ' €';
         const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', {month:'long', year:'numeric'}) : "date inconnue";
 
@@ -455,7 +444,20 @@ if ($firstVariantId && isset($product['variants'][0])) {
             }
         }
 
+        function updateAttributeLabels() {
+            const groups = document.querySelectorAll('.nk-attributes-section .nk-form-group');
+            groups.forEach(group => {
+                const checked = group.querySelector('input:checked');
+                const labelSpan = group.querySelector('.js-selected-val');
+                if (labelSpan) {
+                    labelSpan.textContent = checked ? '(' + checked.dataset.name + ')' : '';
+                }
+            });
+        }
+
         function checkCombination() {
+            updateAttributeLabels();
+
             const groups = document.querySelectorAll('.nk-attributes-section .nk-form-group');
             let selectedIds = [];
             let allSelected = true;
@@ -493,21 +495,15 @@ if ($firstVariantId && isset($product['variants'][0])) {
             if (variant.desc && variant.desc.trim() !== "") descDisplay.innerHTML = variant.desc;
             else descDisplay.innerHTML = productBase.desc;
 
-            // MISE A JOUR GALERIE (Nouveau !)
-            if (variant.images && variant.images.length > 0) {
-                initGallery(variant.images);
-            } else {
-                initGallery(productBase.images);
-            }
+            if (variant.images && variant.images.length > 0) initGallery(variant.images);
+            else initGallery(productBase.images);
 
             updateButtonState(variant.stock, variant.preorder === 1, variant.date);
         }
 
-        // INITIALISATION
         if (document.querySelector('.js-attr-radio')) {
             attrRadios.forEach(r => r.addEventListener('change', checkCombination));
 
-            // Auto-select si variantes
             const groups = document.querySelectorAll('.nk-attributes-section .nk-form-group');
             let autoSelect = true;
             groups.forEach(g => { if(g.querySelector('input:checked')) autoSelect=false; });
@@ -522,9 +518,7 @@ if ($firstVariantId && isset($product['variants'][0])) {
                 checkCombination();
             }
         } else {
-            // Produit simple
             updateButtonState(productBase.stock, productBase.preorder === 1, productBase.date);
-            // Galerie déjà init avec productBase.images
         }
 
         document.querySelectorAll('.js-qty-btn').forEach(btn => {

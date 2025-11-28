@@ -1,10 +1,10 @@
 <?php
 // src/views/partials/header.php
 
-// 1. Récupération des catégories actives pour le menu
-// On utilise getPdo() qui est disponible globalement
+// 1. Récupération des catégories (actives ET inactives)
 $pdoNav = getPdo();
-$stmtNav = $pdoNav->query("SELECT name, slug FROM nanook_categories ORDER BY display_order ASC");
+// On ajoute 'is_active' dans le SELECT
+$stmtNav = $pdoNav->query("SELECT name, slug, is_active FROM nanook_categories ORDER BY display_order ASC");
 $navCategories = $stmtNav->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -22,9 +22,11 @@ $navCategories = $stmtNav->fetchAll(PDO::FETCH_ASSOC);
 
         <nav class="nk-menu-desktop">
             <?php foreach ($navCategories as $cat): ?>
-                <a href="/c/<?= htmlspecialchars($cat['slug']) ?>">
-                    <?= htmlspecialchars($cat['name']) ?>
-                </a>
+                <?php if ((int)$cat['is_active'] === 1): // FILTRE : Uniquement les catégories actives sur Desktop ?>
+                    <a href="/c/<?= htmlspecialchars($cat['slug']) ?>">
+                        <?= htmlspecialchars($cat['name']) ?>
+                    </a>
+                <?php endif; ?>
             <?php endforeach; ?>
 
             <a href="/i/a-propos">À Propos</a>
