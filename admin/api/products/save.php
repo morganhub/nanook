@@ -17,46 +17,46 @@ if (!is_array($input)) {
     jsonResponse(['error' => 'invalid_payload'], 400);
 }
 
+// --- 1. Données Produit Parent ---
 $id = isset($input['id']) ? (int)$input['id'] : 0;
-
 $name = isset($input['name']) ? trim((string)$input['name']) : '';
 $slug = isset($input['slug']) ? trim((string)$input['slug']) : '';
 $shortDescription = isset($input['short_description']) ? trim((string)$input['short_description']) : '';
 $longDescription = isset($input['long_description']) ? trim((string)$input['long_description']) : '';
-$priceRaw = isset($input['price']) ? trim((string)$input['price']) : '0';
 
-// Prix
+// Prix Parent
+$priceRaw = isset($input['price']) ? trim((string)$input['price']) : '0';
 $priceNormalized = str_replace(',', '.', $priceRaw);
 $price = round((float)$priceNormalized, 2);
+if ($price < 0) $price = 0;
 
 $stockQuantity = isset($input['stock_quantity']) ? (int)$input['stock_quantity'] : 0;
+if ($stockQuantity < 0) $stockQuantity = 0;
+
 $allowPreorder = !empty($input['allow_preorder_when_oos']) ? 1 : 0;
 $isActive = !empty($input['is_active']) ? 1 : 0;
 $displayOrder = isset($input['display_order']) ? (int)$input['display_order'] : 0;
-$categoryIds = isset($input['category_ids']) && is_array($input['category_ids']) ? $input['category_ids'] : [];
-
-// Date de disponibilité (peut être null ou vide)
 $availabilityDate = !empty($input['availability_date']) ? $input['availability_date'] : null;
+
+$categoryIds = isset($input['category_ids']) && is_array($input['category_ids']) ? $input['category_ids'] : [];
+$variantsInput = isset($input['variants']) && is_array($input['variants']) ? $input['variants'] : [];
 
 if ($name === '' || $slug === '') {
     jsonResponse(['error' => 'name_and_slug_required'], 400);
 }
 
-if ($price < 0) $price = 0;
-if ($stockQuantity < 0) $stockQuantity = 0;
-
+// Nettoyage IDs catégories
 $categoryIdsClean = [];
 foreach ($categoryIds as $cid) {
     $cidInt = (int)$cid;
-    if ($cidInt > 0) {
-        $categoryIdsClean[] = $cidInt;
-    }
+    if ($cidInt > 0) $categoryIdsClean[] = $cidInt;
 }
 $categoryIdsClean = array_values(array_unique($categoryIdsClean));
 
 try {
     $pdo->beginTransaction();
 
+    // --- 2. Sauvegarde Produit ---
     if ($id > 0) {
         $stmt = $pdo->prepare(
             'UPDATE nanook_products
@@ -86,9 +86,8 @@ try {
             ':display_order' => $displayOrder,
             ':id' => $id,
         ]);
-
         $productId = $id;
-        $action = 'product_update';
+        $actionLog = 'product_update';
     } else {
         $stmt = $pdo->prepare(
             'INSERT INTO nanook_products
@@ -110,42 +109,138 @@ try {
             ':is_active' => $isActive,
             ':display_order' => $displayOrder,
         ]);
-
         $productId = (int)$pdo->lastInsertId();
-        $action = 'product_create';
+        $actionLog = 'product_create';
     }
 
-    // Gestion Catégories
+    // --- 3. Sauvegarde Catégories ---
     $delStmt = $pdo->prepare('DELETE FROM nanook_product_category WHERE product_id = :pid');
     $delStmt->execute([':pid' => $productId]);
 
     if (!empty($categoryIdsClean)) {
-        $insSql = 'INSERT INTO nanook_product_category (product_id, category_id) VALUES ';
         $values = [];
         $params = [];
-        foreach ($categoryIdsClean as $index => $cid) {
+        foreach ($categoryIdsClean as $cid) {
             $values[] = '(?, ?)';
             $params[] = $productId;
             $params[] = $cid;
         }
-        $insSql .= implode(',', $values);
-        $insStmt = $pdo->prepare($insSql);
-        $insStmt->execute($params);
+        $insSql = 'INSERT INTO nanook_product_category (product_id, category_id) VALUES ' . implode(',', $values);
+        $pdo->prepare($insSql)->execute($params);
+    }
+
+    // --- 4. Sauvegarde Variantes (Nouvelle Logique) ---
+
+    $processedVariantIds = [];
+
+    // Prépare les requêtes variantes
+    $stmtInsertVar = $pdo->prepare(
+        'INSERT INTO nanook_product_variants
+        (product_id, sku, price, stock_quantity, allow_preorder_when_oos, is_active, availability_date, short_description, created_at, updated_at)
+        VALUES (:pid, :sku, :price, :stock, :preco, :active, :avail, :sdesc, NOW(), NOW())'
+    );
+
+    $stmtUpdateVar = $pdo->prepare(
+        'UPDATE nanook_product_variants
+         SET sku = :sku,
+             price = :price,
+             stock_quantity = :stock,
+             allow_preorder_when_oos = :preco,
+             is_active = :active,
+             availability_date = :avail,
+             short_description = :sdesc,
+             updated_at = NOW()
+         WHERE id = :vid AND product_id = :pid'
+    );
+
+    // Prépare la gestion des combinaisons (pivot)
+    $stmtDelCombos = $pdo->prepare('DELETE FROM nanook_product_variant_combinations WHERE variant_id = :vid');
+    $stmtInsCombo = $pdo->prepare('INSERT INTO nanook_product_variant_combinations (variant_id, option_id) VALUES (:vid, :oid)');
+
+    foreach ($variantsInput as $vData) {
+        $vid = isset($vData['id']) ? (int)$vData['id'] : 0;
+
+        // Données brutes variante
+        $vSku = trim((string)($vData['sku'] ?? ''));
+        $vStock = (int)($vData['stock'] ?? 0);
+        $vPreco = !empty($vData['allow_preorder']) ? 1 : 0;
+        $vActive = !empty($vData['is_active']) ? 1 : 0;
+        $vAvail = !empty($vData['availability_date']) ? $vData['availability_date'] : null;
+        $vSDesc = trim((string)($vData['short_description'] ?? ''));
+
+        // Prix : peut être null ou float
+        $vPriceVal = $vData['price']; // '10.5' ou '' ou null
+        $vPrice = ($vPriceVal !== '' && $vPriceVal !== null) ? (float)$vPriceVal : null;
+
+        if ($vid > 0) {
+            // Update
+            $stmtUpdateVar->execute([
+                ':sku' => $vSku,
+                ':price' => $vPrice,
+                ':stock' => $vStock,
+                ':preco' => $vPreco,
+                ':active' => $vActive,
+                ':avail' => $vAvail,
+                ':sdesc' => $vSDesc,
+                ':vid' => $vid,
+                ':pid' => $productId
+            ]);
+            $currentVariantId = $vid;
+        } else {
+            // Insert
+            $stmtInsertVar->execute([
+                ':pid' => $productId,
+                ':sku' => $vSku,
+                ':price' => $vPrice,
+                ':stock' => $vStock,
+                ':preco' => $vPreco,
+                ':active' => $vActive,
+                ':avail' => $vAvail,
+                ':sdesc' => $vSDesc
+            ]);
+            $currentVariantId = (int)$pdo->lastInsertId();
+        }
+
+        $processedVariantIds[] = $currentVariantId;
+
+        // Gestion Combinaisons (Options)
+        // 1. On nettoie les anciennes liaisons pour cette variante
+        $stmtDelCombos->execute([':vid' => $currentVariantId]);
+
+        // 2. On insère les nouvelles (option_ids)
+        if (!empty($vData['option_ids']) && is_array($vData['option_ids'])) {
+            foreach ($vData['option_ids'] as $oid) {
+                $oid = (int)$oid;
+                if ($oid > 0) {
+                    $stmtInsCombo->execute([':vid' => $currentVariantId, ':oid' => $oid]);
+                }
+            }
+        }
+    }
+
+    // Suppression des variantes qui ne sont plus dans la liste
+    if (!empty($processedVariantIds)) {
+        $placeholders = implode(',', array_fill(0, count($processedVariantIds), '?'));
+        $sqlDelVars = "DELETE FROM nanook_product_variants WHERE product_id = ? AND id NOT IN ($placeholders)";
+        $paramsDel = array_merge([$productId], $processedVariantIds);
+        $pdo->prepare($sqlDelVars)->execute($paramsDel);
+    } else {
+        // Si aucune variante envoyée, on supprime tout pour ce produit (cas retour à produit simple)
+        $pdo->prepare("DELETE FROM nanook_product_variants WHERE product_id = ?")->execute([$productId]);
     }
 
     $pdo->commit();
 
-    logAdminActivity($pdo, $admin['id'], $action, 'product', $productId, [
+    logAdminActivity($pdo, $admin['id'], $actionLog, 'product', $productId, [
         'name' => $name,
-        'product_id' => $productId,
+        'variant_count' => count($processedVariantIds)
     ]);
 
     jsonResponse([
         'success' => true,
-        'data' => [
-            'id' => $productId,
-        ],
+        'data' => ['id' => $productId]
     ]);
+
 } catch (Throwable $e) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();

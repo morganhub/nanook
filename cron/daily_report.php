@@ -3,9 +3,8 @@
 declare(strict_types=1);
 
 // 1. Bootstrap
-require_once __DIR__ . '/../src/config/database.php';
-// Chemin corrigé vers Mailer.php (il est dans src/Mailer.php selon votre structure)
-require_once __DIR__ . '/../src/Mailer.php';
+require_once __DIR__ . '/../../src/config/database.php';
+require_once __DIR__ . '/../../src/Mailer.php';
 
 // Sécurité CLI (décommentez en prod si nécessaire)
 // if (php_sapi_name() !== 'cli') { die('Access denied'); }
@@ -17,7 +16,6 @@ $todayDate = date('Y-m-d');
 echo "--- Début CRON Rapport : " . date('Y-m-d H:i:s') . " ---\n";
 
 // 2. Récupération des admins éligibles à un rapport
-// On sélectionne ceux qui veulent un rapport à cette heure-ci (ou jamais)
 $stmtAdmins = $pdo->prepare("
     SELECT id, email, username, report_frequency 
     FROM nanook_admin_users 
@@ -40,7 +38,7 @@ $pending = $pdo->query("SELECT count(*) as count FROM nanook_orders WHERE status
 $shipped = $pdo->query("SELECT count(*) as count FROM nanook_orders WHERE status = 'shipped'")->fetch();
 $delivered = $pdo->query("SELECT count(*) as count FROM nanook_orders WHERE status = 'delivered' AND updated_at >= DATE_SUB(NOW(), INTERVAL 2 WEEK)")->fetch();
 
-// A2. Commandes (Tableau Détail - Nouveau)
+// A2. Commandes (Tableau Détail)
 $sqlOrdersList = "
     SELECT order_number, created_at, customer_first_name, customer_last_name, total_amount, status, delivery_method
     FROM nanook_orders
@@ -69,14 +67,12 @@ if (empty($ordersList)) {
         $amt = number_format((float)$o['total_amount'], 0, ',', ' ') . ' €';
         $st = $o['status'];
 
-        // Couleurs de statut
         $color = '#333';
         $statusLabel = $st;
-        if ($st === 'pending') { $color = '#d97706'; $statusLabel = 'En attente'; } // Orange
-        if ($st === 'confirmed') { $color = '#16a34a'; $statusLabel = 'Confirmée'; } // Green
-        if ($st === 'shipped') { $color = '#2563eb'; $statusLabel = 'Expédiée'; } // Blue
+        if ($st === 'pending') { $color = '#d97706'; $statusLabel = 'En attente'; }
+        if ($st === 'confirmed') { $color = '#16a34a'; $statusLabel = 'Confirmée'; }
+        if ($st === 'shipped') { $color = '#2563eb'; $statusLabel = 'Expédiée'; }
 
-        // Petit indicateur pour Mains Propres
         $method = ($o['delivery_method'] === 'pickup') ? ' <span style="font-size:10px; background:#eee; padding:1px 4px; border-radius:3px;">MP</span>' : '';
 
         $ordersTableHtml .= "
@@ -118,68 +114,62 @@ function getSales($pdo, $start, $end) {
 $salesMonth = getSales($pdo, date('Y-m-01'), $todayDate);
 $salesPrevMonth = getSales($pdo, date('Y-m-01', strtotime('first day of last month')), date('Y-m-t', strtotime('last month')));
 
-// D. Stock & Production (Logique adaptée)
-// 1. Stock Négatif = À Produire
-// 2. Commandes "En cours" (non expédiées) = À Envoyer (si stock dispo) ou À Produire (si pas de stock)
-// Pour simplifier la vue "Atelier", on se base sur le stock physique en base.
-// Si stock < 0, c'est qu'on a vendu plus que dispo -> À produire.
-
-$sqlProducts = "
-    SELECT 
-        p.id, p.name, p.stock_quantity, 
-        v.id as vid, v.name as vname, v.stock_quantity as vstock
-    FROM nanook_products p
-    LEFT JOIN nanook_product_variants v ON v.product_id = p.id AND v.is_active = 1
-    WHERE p.is_active = 1
-    ORDER BY p.name ASC, v.display_order ASC
-";
-$rows = $pdo->query($sqlProducts)->fetchAll();
-
-// Regroupement Parent/Variantes
-$productsTree = [];
-foreach ($rows as $row) {
-    $pid = $row['id'];
-    if (!isset($productsTree[$pid])) {
-        $productsTree[$pid] = [
-            'name' => $row['name'],
-            'stock' => (int)$row['stock_quantity'],
-            'variants' => []
-        ];
-    }
-    if ($row['vid']) {
-        $productsTree[$pid]['variants'][] = [
-            'name' => $row['vname'],
-            'stock' => (int)$row['vstock']
-        ];
-    }
-}
+// D. Stock & Production (Mise à jour V2)
+// On récupère les produits, puis leurs variantes avec le nom reconstruit via GROUP_CONCAT
 
 $inventoryHtml = "";
-foreach ($productsTree as $p) {
-    $hasVariants = !empty($p['variants']);
 
-    // Si variantes, on affiche le titre parent puis les lignes variantes
+// 1. Récupérer tous les produits actifs
+$stmtProducts = $pdo->query("SELECT id, name, stock_quantity FROM nanook_products WHERE is_active = 1 ORDER BY name ASC");
+$products = $stmtProducts->fetchAll();
+
+foreach ($products as $p) {
+    // 2. Pour chaque produit, récupérer les variantes avec leur nom construit dynamiquement
+    // (Jointure Pivot -> Options -> Attributs)
+    $sqlVariants = "
+        SELECT 
+            v.id, 
+            v.stock_quantity,
+            GROUP_CONCAT(o.name ORDER BY a.display_order SEPARATOR ' - ') as variant_name
+        FROM nanook_product_variants v
+        LEFT JOIN nanook_product_variant_combinations pvc ON v.id = pvc.variant_id
+        LEFT JOIN nanook_attribute_options o ON pvc.option_id = o.id
+        LEFT JOIN nanook_attributes a ON o.attribute_id = a.id
+        WHERE v.product_id = :pid AND v.is_active = 1
+        GROUP BY v.id
+        ORDER BY v.id ASC
+    ";
+    $stmtVar = $pdo->prepare($sqlVariants);
+    $stmtVar->execute([':pid' => $p['id']]);
+    $variants = $stmtVar->fetchAll();
+
+    $hasVariants = !empty($variants);
+
+    // Affichage
     if ($hasVariants) {
-        $inventoryHtml .= "<tr><td colspan='3' style='background:#f0f0f0; font-weight:bold; padding:5px;'>{$p['name']}</td></tr>";
-        foreach ($p['variants'] as $v) {
-            $stock = $v['stock'];
-            $toProduce = ($stock < 0) ? abs($stock) : 0;
-            // Si stock positif, "À produire" = 0. Si stock -2, "À produire" = 2.
+        $inventoryHtml .= "<tr><td colspan='3' style='background:#f0f0f0; font-weight:bold; padding:5px;'>" . htmlspecialchars($p['name']) . "</td></tr>";
 
-            $stockDisplay = ($stock < 0) ? 0 : $stock; // Stock physique réel dispo pour envoi immédiat
+        foreach ($variants as $v) {
+            $stock = (int)$v['stock_quantity'];
+            // Stock négatif = À produire
+            $toProduce = ($stock < 0) ? abs($stock) : 0;
+            $stockDisplay = ($stock < 0) ? 0 : $stock;
 
             $alertStyle = ($toProduce > 0) ? "color:#C18C5D; font-weight:bold;" : "color:#ccc;";
 
+            // Nom ou Défaut
+            $vName = $v['variant_name'] ? htmlspecialchars($v['variant_name']) : 'Standard';
+
             $inventoryHtml .= "
             <tr>
-                <td style='padding:5px; padding-left:20px;'>↳ {$v['name']}</td>
+                <td style='padding:5px; padding-left:20px;'>↳ {$vName}</td>
                 <td style='padding:5px; text-align:center;'>{$stockDisplay}</td>
                 <td style='padding:5px; text-align:center; $alertStyle'>{$toProduce}</td>
             </tr>";
         }
     } else {
-        // Produit simple
-        $stock = $p['stock'];
+        // Produit simple (pas de variantes)
+        $stock = (int)$p['stock_quantity'];
         $toProduce = ($stock < 0) ? abs($stock) : 0;
         $stockDisplay = ($stock < 0) ? 0 : $stock;
 
@@ -187,7 +177,7 @@ foreach ($productsTree as $p) {
 
         $inventoryHtml .= "
         <tr>
-            <td style='padding:5px; font-weight:bold;'>{$p['name']}</td>
+            <td style='padding:5px; font-weight:bold;'>" . htmlspecialchars($p['name']) . "</td>
             <td style='padding:5px; text-align:center;'>{$stockDisplay}</td>
             <td style='padding:5px; text-align:center; $alertStyle'>{$toProduce}</td>
         </tr>";
@@ -196,7 +186,6 @@ foreach ($productsTree as $p) {
 
 // --- E. GENERATION EMAIL ---
 
-// Formatage de la date du mois (ex: "Novembre 2025")
 $fmt = new IntlDateFormatter('fr_FR', IntlDateFormatter::NONE, IntlDateFormatter::NONE);
 $fmt->setPattern('MMMM yyyy');
 $currentMonthLabel = ucfirst($fmt->format(time()));
@@ -216,7 +205,6 @@ $htmlBody = "
         <div class='kpi'><span class='val' style='color:green;'>{$delivered['count']}</span><span class='lbl'>Livrées (15j)</span></div>
     </div>
     
-    <!-- Nouveau tableau des commandes actives -->
     $ordersTableHtml
 
     <h2>📈 Trafic & Ventes ($currentMonthLabel)</h2>
@@ -242,24 +230,18 @@ $htmlBody = "
 $mailer = new Mailer();
 
 foreach ($admins as $admin) {
-    // Vérification unicité envoi
-    // On vérifie si un job 'report_stats' a réussi pour cet email dans la période
-
     $periodSql = "";
     if ($admin['report_frequency'] === 'daily') {
-        // Déjà envoyé aujourd'hui ?
         $checkSql = "SELECT id FROM nanook_cron_logs WHERE job_name = :job AND executed_at >= :date AND status = 'success'";
         $params = [':job' => 'report_stats_' . $admin['id'], ':date' => date('Y-m-d 00:00:00')];
     }
     elseif ($admin['report_frequency'] === 'weekly') {
-        // Déjà envoyé cette semaine (Lundi->Dimanche) ?
-        if (date('N') != 1) continue; // On envoie le Lundi seulement
+        if (date('N') != 1) continue;
         $checkSql = "SELECT id FROM nanook_cron_logs WHERE job_name = :job AND executed_at >= :date AND status = 'success'";
         $params = [':job' => 'report_stats_' . $admin['id'], ':date' => date('Y-m-d 00:00:00', strtotime('monday this week'))];
     }
     elseif ($admin['report_frequency'] === 'monthly') {
-        // Déjà envoyé ce mois-ci (le 1er) ?
-        if (date('j') != 1) continue; // On envoie le 1er du mois
+        if (date('j') != 1) continue;
         $checkSql = "SELECT id FROM nanook_cron_logs WHERE job_name = :job AND executed_at >= :date AND status = 'success'";
         $params = [':job' => 'report_stats_' . $admin['id'], ':date' => date('Y-m-01 00:00:00')];
     } else {
@@ -273,11 +255,9 @@ foreach ($admins as $admin) {
         continue;
     }
 
-    // Envoi
     echo "Envoi du rapport à {$admin['email']}...\n";
     $sent = $mailer->send($admin['email'], $subjectBase . " - " . ucfirst($admin['report_frequency']), $htmlBody);
 
-    // Log
     $stmtLog = $pdo->prepare("INSERT INTO nanook_cron_logs (job_name, executed_at, status, message) VALUES (:job, NOW(), :status, :msg)");
     $stmtLog->execute([
         ':job' => 'report_stats_' . $admin['id'],

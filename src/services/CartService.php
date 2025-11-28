@@ -8,12 +8,17 @@ class CartService
 {
     public function __construct()
     {
-        if (session_status() === PHP_SESSION_NONE) session_start();
-        if (!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        if (!isset($_SESSION['cart'])) {
+            $_SESSION['cart'] = [];
+        }
     }
 
     public function add(int $productId, ?int $variantId, int $quantity, array $customizations = []): void
     {
+        // Clé unique pour regrouper les produits identiques dans le panier
         $key = md5((string)$productId . (string)$variantId . json_encode($customizations));
 
         if (isset($_SESSION['cart'][$key])) {
@@ -51,85 +56,126 @@ class CartService
         $globalHasPreorder = false;
 
         foreach ($_SESSION['cart'] as $key => $item) {
-            // 1. Infos Produit
+            $productId = (int)$item['product_id'];
+            $variantId = !empty($item['variant_id']) ? (int)$item['variant_id'] : null;
+            $qtyRequested = (int)$item['quantity'];
+
+            // 1. Récupération Produit Parent
             $stmt = $pdo->prepare("
-                SELECT p.name, p.price, p.slug, p.stock_quantity, p.allow_preorder_when_oos, p.availability_date,
-                       pi.file_path as image
-                FROM nanook_products p
-                LEFT JOIN nanook_product_images pi ON p.id = pi.product_id AND pi.is_main = 1
-                WHERE p.id = :id
+                SELECT id, name, price, slug, stock_quantity, allow_preorder_when_oos, availability_date
+                FROM nanook_products 
+                WHERE id = :id
             ");
-            $stmt->execute([':id' => $item['product_id']]);
+            $stmt->execute([':id' => $productId]);
             $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if (!$product) continue;
+            // Si le produit n'existe plus, on le retire du panier
+            if (!$product) {
+                $this->remove($key);
+                continue;
+            }
 
-            $price = (float)$product['price'];
+            // Valeurs par défaut (Parent)
+            $finalPrice = (float)$product['price'];
+            $baseName = $product['name'];
             $variantName = null;
-
-            // Stock disponible physique
             $availableStock = (int)$product['stock_quantity'];
             $availabilityDate = $product['availability_date'];
+            $imagePath = null;
 
-            // 2. Infos Variante
-            if ($item['variant_id']) {
+            // 2. Récupération Variante (Nouveau Système)
+            if ($variantId) {
                 $stmtVar = $pdo->prepare("
-                    SELECT name, price, stock_quantity, allow_preorder_when_oos, availability_date 
+                    SELECT id, price, stock_quantity, allow_preorder_when_oos, availability_date
                     FROM nanook_product_variants 
-                    WHERE id = :id
+                    WHERE id = :id AND product_id = :pid
                 ");
-                $stmtVar->execute([':id' => $item['variant_id']]);
+                $stmtVar->execute([':id' => $variantId, ':pid' => $productId]);
                 $variant = $stmtVar->fetch(PDO::FETCH_ASSOC);
-                if ($variant) {
-                    $variantName = $variant['name'];
-                    if ($variant['price'] !== null) $price = (float)$variant['price'];
 
-                    // Surcharge avec les données variante
+                if ($variant) {
+                    // A. Logique Prix : Variante prioritaire SI > 0
+                    $vPrice = (float)$variant['price'];
+                    if ($vPrice > 0) {
+                        $finalPrice = $vPrice;
+                    }
+
+                    // B. Stock & Dispo
                     $availableStock = (int)$variant['stock_quantity'];
                     $availabilityDate = $variant['availability_date'];
+
+                    // C. Construction du Nom Variante (ex: "Grand - Rouge")
+                    // On joint la table de pivot -> options -> attributs pour avoir l'ordre correct
+                    $stmtName = $pdo->prepare("
+                        SELECT o.name 
+                        FROM nanook_product_variant_combinations pvc
+                        JOIN nanook_attribute_options o ON pvc.option_id = o.id
+                        JOIN nanook_attributes a ON o.attribute_id = a.id
+                        WHERE pvc.variant_id = :vid
+                        ORDER BY a.display_order ASC
+                    ");
+                    $stmtName->execute([':vid' => $variantId]);
+                    $optionsNames = $stmtName->fetchAll(PDO::FETCH_COLUMN);
+
+                    if (!empty($optionsNames)) {
+                        $variantName = implode(' - ', $optionsNames);
+                    } else {
+                        $variantName = "Défaut"; // Fallback si variante sans options
+                    }
+
+                    // D. Image Spécifique Variante
+                    $stmtImgV = $pdo->prepare("SELECT file_path FROM nanook_product_images WHERE variant_id = :vid ORDER BY display_order ASC LIMIT 1");
+                    $stmtImgV->execute([':vid' => $variantId]);
+                    $imgVar = $stmtImgV->fetch();
+                    if ($imgVar) {
+                        $imagePath = $imgVar['file_path'];
+                    }
+                }
+            }
+
+            // Fallback Image : Si pas d'image variante, on prend la principale du produit
+            if (!$imagePath) {
+                $stmtImgP = $pdo->prepare("SELECT file_path FROM nanook_product_images WHERE product_id = :pid AND is_main = 1 LIMIT 1");
+                $stmtImgP->execute([':pid' => $productId]);
+                $imgProd = $stmtImgP->fetch();
+                if ($imgProd) {
+                    $imagePath = $imgProd['file_path'];
                 }
             }
 
             // --- CALCUL PRÉCOMMANDE ---
-            $qtyRequested = (int)$item['quantity'];
-            $preorderCount = 0; // Nombre d'items de cette ligne qui sont en précommande
-
+            $preorderCount = 0;
             if ($availableStock <= 0) {
-                // Cas 1: Tout est en précommande
                 $preorderCount = $qtyRequested;
             } elseif ($qtyRequested > $availableStock) {
-                // Cas 2: Mixte (ex: veut 5, reste 2 en stock -> 3 précos)
                 $preorderCount = $qtyRequested - $availableStock;
             }
 
-            // Flag global
             if ($preorderCount > 0) {
                 $globalHasPreorder = true;
             }
 
-            // Un item est "considéré précommande" pour le tri visuel s'il y en a au moins 1 en préco
-            $isPreorderItem = ($preorderCount > 0);
-
-            $lineTotal = $price * $qtyRequested;
+            // Calcul Totaux Ligne
+            $lineTotal = $finalPrice * $qtyRequested;
             $total += $lineTotal;
             $count += $qtyRequested;
 
             $items[] = [
                 'key' => $key,
-                'product_id' => $item['product_id'],
-                'name' => $product['name'],
+                'product_id' => $productId,
+                'name' => $baseName,
                 'slug' => $product['slug'],
-                'image' => $product['image'],
-                'variant_id' => $item['variant_id'],
-                'variant_name' => $variantName,
+                'image' => $imagePath,
+                'variant_id' => $variantId,
+                'variant_name' => $variantName, // Maintenant correctement rempli !
                 'quantity' => $qtyRequested,
-                'unit_price' => $price,
+                'unit_price' => $finalPrice,
                 'line_total' => $lineTotal,
                 'customizations' => $item['customizations'],
 
-                // Métadonnées Précommande
-                'is_preorder' => $isPreorderItem,
-                'preorder_count' => $preorderCount, // Nouvelle info précise
+                // Métadonnées
+                'is_preorder' => ($preorderCount > 0),
+                'preorder_count' => $preorderCount,
                 'available_stock' => $availableStock,
                 'availability_date' => $availabilityDate
             ];

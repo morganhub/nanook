@@ -1,6 +1,5 @@
 <?php
-// EXEMPLE d’en-tête de page admin (products.php, orders.php, etc.)
-
+// admin/products.php
 declare(strict_types=1);
 
 $pageTitle = 'Produits';
@@ -8,153 +7,43 @@ $activeMenu = 'products';
 require __DIR__ . '/_header.php';
 ?>
     <style>
+        .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+        .filters input[type="text"] { padding: 8px 10px; border-radius: 4px; border: 1px solid #d1d5db; font-size: 14px; min-width: 220px; }
+        .filters select { padding: 8px 10px; border-radius: 4px; border: 1px solid #d1d5db; font-size: 14px; min-width: 180px; }
+        .filters button { padding: 8px 12px; border-radius: 4px; border: none; background: #111827; color: #ffffff; font-size: 14px; cursor: pointer; }
 
-        .filters {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        .filters input[type="text"] {
-            padding: 8px 10px;
-            border-radius: 4px;
-            border: 1px solid #d1d5db;
-            font-size: 14px;
-            min-width: 220px;
-        }
-        .filters select {
-            padding: 8px 10px;
-            border-radius: 4px;
-            border: 1px solid #d1d5db;
-            font-size: 14px;
-            min-width: 180px;
-        }
-        .filters button {
-            padding: 8px 12px;
-            border-radius: 4px;
-            border: none;
-            background: #111827;
-            color: #ffffff;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        .btn-primary {
-            padding: 8px 14px;
-            border-radius: 4px;
-            border: none;
-            background: #111827;
-            color: #ffffff;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        .btn-secondary {
-            padding: 8px 14px;
-            border-radius: 4px;
-            border: 1px solid #d1d5db;
-            background: #ffffff;
-            color: #111827;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        .btn-primary[disabled],
-        .btn-secondary[disabled] {
-            opacity: 0.6;
-            cursor: default;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #ffffff;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        thead {
-            background: #f9fafb;
-        }
-        th, td {
-            padding: 8px 10px;
-            text-align: left;
-            font-size: 13px;
-        }
-        th {
-            font-weight: 600;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        td {
-            border-bottom: 1px solid #f3f4f6;
-        }
-        tr:last-child td {
-            border-bottom: none;
-        }
+        table { width: 100%; border-collapse: collapse; background: #ffffff; border-radius: 8px; overflow: hidden; }
+        thead { background: #f9fafb; }
+        th, td { padding: 8px 10px; text-align: left; font-size: 13px; }
+        th { font-weight: 600; border-bottom: 1px solid #e5e7eb; }
+        td { border-bottom: 1px solid #f3f4f6; }
+        tr:last-child td { border-bottom: none; }
 
         /* Styles spécifiques pour la hiérarchie */
-        tr.is-variant td {
-            background-color: #fafafa;
-            color: #555;
-            border-bottom: 1px solid #eee;
-        }
-        tr.is-variant td:first-child {
-            border-left: 3px solid #ddd; /* Ligne visuelle */
-        }
-        .variant-indent {
-            padding-left: 20px;
-            position: relative;
-        }
-        .variant-indent::before {
-            content: "↳";
-            position: absolute;
-            left: 0;
-            color: #999;
-        }
+        tr.is-variant td { background-color: #fafafa; color: #555; border-bottom: 1px solid #eee; }
+        tr.is-variant td:first-child { border-left: 3px solid #ddd; }
+        .variant-indent { padding-left: 20px; position: relative; font-size: 12px; }
+        .variant-indent::before { content: "↳"; position: absolute; left: 5px; color: #999; }
 
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 2px 6px;
-            border-radius: 999px;
-            font-size: 11px;
-            font-weight: 500;
-        }
-        .badge-green { background: #dcfce7; color: #15803d; }
-        .badge-red { background: #fee2e2; color: #b91c1c; }
-        .badge-yellow { background: #fef3c7; color: #92400e; }
         .categories-list { font-size: 12px; color: #4b5563; }
-
-        .pagination {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 10px;
-            font-size: 13px;
-        }
-        .pagination-controls {
-            display: flex;
-            gap: 6px;
-        }
-        .message { margin-bottom: 8px; font-size: 13px; }
-        .message.error { color: #b91c1c; }
-        .message.info { color: #4b5563; }
+        .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 13px; }
+        .pagination-controls { display: flex; gap: 6px; }
         a.link { color: #111827; text-decoration: none; }
         a.link:hover { text-decoration: underline; }
+        a.btn-icon { color: #666; } a.btn-icon:hover { color: #111; }
     </style>
 
     <div class="page">
         <div class="page-header">
-            <div>
-                <div class="title"><span class="brand">NANOOK</span> · Produits</div>
-            </div>
-            <div>
-                <button class="btn-primary" id="addProductButton">Ajouter un produit</button>
-            </div>
+            <div><div class="title"><span class="brand">NANOOK</span> · Produits</div></div>
+            <div><button class="btn-primary" id="addProductButton">Ajouter un produit</button></div>
         </div>
 
         <div id="message" class="message info" style="display:none;"></div>
 
         <div class="filters">
             <input type="text" id="searchInput" placeholder="Recherche par nom ou slug…">
-            <select id="categoryFilter">
-                <option value="">Toutes les catégories</option>
-            </select>
+            <select id="categoryFilter"><option value="">Toutes les catégories</option></select>
             <button id="searchButton">Filtrer</button>
         </div>
 
@@ -172,8 +61,7 @@ require __DIR__ . '/_header.php';
                 <th></th>
             </tr>
             </thead>
-            <tbody id="productsTableBody">
-            </tbody>
+            <tbody id="productsTableBody"></tbody>
         </table>
 
         <div class="pagination">
@@ -187,7 +75,6 @@ require __DIR__ . '/_header.php';
 
     <script>
         const apiBaseUrl = '/admin/api';
-
         const messageEl = document.getElementById('message');
         const productsTableBody = document.getElementById('productsTableBody');
         const paginationInfo = document.getElementById('paginationInfo');
@@ -204,12 +91,7 @@ require __DIR__ . '/_header.php';
         let currentCategoryId = '';
 
         function showMessage(text, type = 'info') {
-            if (!text) {
-                messageEl.style.display = 'none';
-                messageEl.textContent = '';
-                messageEl.className = 'message';
-                return;
-            }
+            if (!text) { messageEl.style.display = 'none'; return; }
             messageEl.textContent = text;
             messageEl.className = 'message ' + type;
             messageEl.style.display = 'block';
@@ -217,41 +99,25 @@ require __DIR__ . '/_header.php';
 
         async function ensureAuthenticated() {
             try {
-                const res = await fetch(`${apiBaseUrl}/me.php`, {
-                    method: 'GET',
-                    credentials: 'include'
-                });
+                const res = await fetch(`${apiBaseUrl}/me.php`);
                 const data = await res.json();
-                if (!data.authenticated) {
-                    window.location.href = '/admin/index.php';
-                }
-            } catch (error) {
-                console.error(error);
-                window.location.href = '/admin/index.php';
-            }
+                if (!data.authenticated) window.location.href = '/admin/index.php';
+            } catch (error) { window.location.href = '/admin/index.php'; }
         }
 
         async function loadCategories() {
             try {
-                const res = await fetch(`${apiBaseUrl}/categories/list.php`, {
-                    method: 'GET',
-                    credentials: 'include'
-                });
+                const res = await fetch(`${apiBaseUrl}/categories/list.php`);
                 const data = await res.json();
-                if (!data.success) {
-                    return;
-                }
-                const categories = data.data;
+                if (!data.success) return;
                 categoryFilter.innerHTML = '<option value="">Toutes les catégories</option>';
-                for (let cat of categories) {
+                data.data.forEach(cat => {
                     const option = document.createElement('option');
                     option.value = String(cat.id);
                     option.textContent = cat.name;
                     categoryFilter.appendChild(option);
-                }
-            } catch (error) {
-                console.error(error);
-            }
+                });
+            } catch (error) { console.error(error); }
         }
 
         function formatPrice(price) {
@@ -262,14 +128,7 @@ require __DIR__ . '/_header.php';
         function renderProducts(items) {
             productsTableBody.innerHTML = '';
             if (!items || !items.length) {
-                const tr = document.createElement('tr');
-                const td = document.createElement('td');
-                td.colSpan = 8;
-                td.textContent = 'Aucun produit trouvé.';
-                td.style.fontSize = '13px';
-                td.style.color = '#6b7280';
-                tr.appendChild(td);
-                productsTableBody.appendChild(tr);
+                productsTableBody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#6b7280;">Aucun produit trouvé.</td></tr>';
                 return;
             }
 
@@ -278,198 +137,91 @@ require __DIR__ . '/_header.php';
 
                 // 1. Ligne Parent
                 const tr = document.createElement('tr');
-
-                const tdId = document.createElement('td');
-                tdId.textContent = p.id;
-                tr.appendChild(tdId);
-
-                const tdName = document.createElement('td');
-                const nameLink = document.createElement('a');
-                nameLink.href = `/admin/product_form.php?id=${encodeURIComponent(p.id)}`;
-                nameLink.textContent = p.name;
-                nameLink.className = 'link';
-                tdName.appendChild(nameLink);
-                if(hasVariants) {
-                    const vCount = document.createElement('span');
-                    vCount.style.fontSize = '11px'; vCount.style.color = '#666'; vCount.style.marginLeft = '5px';
-                    vCount.innerHTML = `<br/>${p.variants.length} variantes`;
-                    tdName.appendChild(vCount);
-                }
-                const slugSpan = document.createElement('div');
-                slugSpan.style.fontSize = '11px';
-                slugSpan.style.color = '#6b7280';
-                // slugSpan.innerHTML = p.slug;
-                tdName.appendChild(slugSpan);
-                tr.appendChild(tdName);
-
-                // Prix
-                const tdPrice = document.createElement('td');
-                if(hasVariants) {
-                    tdPrice.innerHTML = '—'; // Prix géré par variante
-                } else {
-                    tdPrice.innerHTML = formatPrice(p.price);
-                }
-                tr.appendChild(tdPrice);
-
-                // Stock
-                const tdStock = document.createElement('td');
-                if(hasVariants) {
-                    tdStock.textContent = '—'; // Stock géré par variante
-                } else {
-                    tdStock.textContent = p.stock_quantity;
-                    if (p.stock_quantity <= 0) {
-                        if (p.allow_preorder_when_oos) {
-                            const badge = document.createElement('span'); badge.className = 'badge badge-yellow'; badge.textContent = 'Précommande'; badge.style.marginLeft = '4px'; tdStock.appendChild(badge);
-                        } else {
-                            const badge = document.createElement('span'); badge.className = 'badge badge-red'; badge.textContent = 'Rupture'; badge.style.marginLeft = '4px'; tdStock.appendChild(badge);
-                        }
-                    }
-                }
-                tr.appendChild(tdStock);
-
-                // Statut
-                const tdStatus = document.createElement('td');
-                const badge = document.createElement('span');
-                if (p.is_active) { badge.className = 'badge badge-green'; badge.textContent = 'Actif'; }
-                else { badge.className = 'badge badge-red'; badge.textContent = 'Inactif'; }
-                tdStatus.appendChild(badge);
-                tr.appendChild(tdStatus);
-
-                // Catégories
-                const tdCategories = document.createElement('td');
-                const cats = p.categories || [];
-                if (cats.length) {
-                    const listSpan = document.createElement('span');
-                    listSpan.className = 'categories-list';
-                    listSpan.textContent = cats.map(c => c.name).join(', ');
-                    tdCategories.appendChild(listSpan);
-                } else {
-                    tdCategories.textContent = '-';
-                }
-                tr.appendChild(tdCategories);
-
-                const tdCreated = document.createElement('td');
-                tdCreated.textContent = p.created_at ? p.created_at.split(' ')[0] : '';
-                tr.appendChild(tdCreated);
-
-                // --- Nouvelle Colonne VOIR ---
-                const tdView = document.createElement('td');
-                const viewLink = document.createElement('a');
-                viewLink.href = `/p/${p.slug}`;
-                viewLink.target = '_blank';
-                viewLink.className = 'btn-icon';
-                viewLink.title = 'Voir sur le site';
-                // Icône Oeil SVG
-                viewLink.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
-                tdView.appendChild(viewLink);
-                tr.appendChild(tdView);
-
-                const tdActions = document.createElement('td');
-                const editLink = document.createElement('a');
-                editLink.href = `/admin/product_form.php?id=${encodeURIComponent(p.id)}`;
-                editLink.textContent = 'Modifier';
-                editLink.className = 'link';
-                tdActions.appendChild(editLink);
-                tr.appendChild(tdActions);
-
+                tr.innerHTML = `
+                    <td>${p.id}</td>
+                    <td>
+                        <a href="/admin/product_form.php?id=${p.id}" class="link" style="font-weight:600;">${p.name}</a>
+                        ${hasVariants ? `<span style="font-size:11px; color:#666; margin-left:5px;">(${p.variants.length} variantes)</span>` : ''}
+                        <div style="font-size:11px; color:#9ca3af;">${p.slug}</div>
+                    </td>
+                    <td>${hasVariants ? '—' : formatPrice(p.price)}</td>
+                    <td>${renderStock(p.stock_quantity, p.allow_preorder_when_oos, hasVariants)}</td>
+                    <td>${renderStatus(p.is_active)}</td>
+                    <td>${renderCats(p.categories)}</td>
+                    <td>${p.created_at ? p.created_at.split(' ')[0] : ''}</td>
+                    <td>
+                        <a href="/p/${p.slug}" target="_blank" class="btn-icon" title="Voir sur le site">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </a>
+                    </td>
+                    <td><a href="/admin/product_form.php?id=${p.id}" class="link">Modifier</a></td>
+                `;
                 productsTableBody.appendChild(tr);
 
-                // 2. Lignes Variantes (le cas échéant)
+                // 2. Lignes Variantes
                 if (hasVariants) {
                     for (let v of p.variants) {
                         const trV = document.createElement('tr');
                         trV.className = 'is-variant';
-
-                        const tdIdV = document.createElement('td'); // ID vide ou tiret
-                        trV.appendChild(tdIdV);
-
-                        const tdNameV = document.createElement('td');
-                        const divIndent = document.createElement('div');
-                        divIndent.className = 'variant-indent';
-                        divIndent.textContent = v.name;
-                        tdNameV.appendChild(divIndent);
-                        trV.appendChild(tdNameV);
-
-                        const tdPriceV = document.createElement('td');
-                        // Si prix null, prend prix du parent (mais ici on affiche le prix spécifique ou 'Parent')
-                        tdPriceV.innerHTML = v.price !== null ? formatPrice(v.price) : formatPrice(p.price) + ' (P)';
-                        trV.appendChild(tdPriceV);
-
-                        const tdStockV = document.createElement('td');
-                        tdStockV.textContent = v.stock_quantity;
-                        if (v.stock_quantity <= 0) {
-                            if (v.allow_preorder_when_oos) {
-                                const b = document.createElement('span'); b.className = 'badge badge-yellow'; b.textContent = 'Préco'; b.style.marginLeft = '4px'; tdStockV.appendChild(b);
-                            } else {
-                                const b = document.createElement('span'); b.className = 'badge badge-red'; b.textContent = 'Rupture'; b.style.marginLeft = '4px'; tdStockV.appendChild(b);
-                            }
-                        }
-                        trV.appendChild(tdStockV);
-
-                        const tdStatusV = document.createElement('td');
-                        const bStat = document.createElement('span');
-                        if (v.is_active) { bStat.className = ''; bStat.textContent = ''; }
-                        else { bStat.className = 'badge badge-red'; bStat.textContent = 'OFF'; }
-                        tdStatusV.appendChild(bStat);
-                        trV.appendChild(tdStatusV);
-
-                        // Col vides pour alignement
-                        trV.appendChild(document.createElement('td')); // Cats
-                        trV.appendChild(document.createElement('td')); // Date
-                        trV.appendChild(document.createElement('td')); // Actions (on peut mettre un lien d'edit direct vers le parent)
-
+                        trV.innerHTML = `
+                            <td></td>
+                            <td><div class="variant-indent">${v.name}</div></td>
+                            <td>${v.price !== null ? formatPrice(v.price) : '<span style="color:#999;font-size:11px;">(Parent)</span>'}</td>
+                            <td>${renderStock(v.stock_quantity, v.allow_preorder_when_oos, false)}</td>
+                            <td>${renderStatus(v.is_active)}</td>
+                            <td colspan="4"></td>
+                        `;
                         productsTableBody.appendChild(trV);
                     }
                 }
             }
         }
 
+        function renderStock(qty, allowPreorder, isParentWithVariants) {
+            if(isParentWithVariants) return '—';
+            if (qty <= 0) {
+                if (allowPreorder) return '<span class="badge badge-yellow">Précommande</span>';
+                return '<span class="badge badge-red">Rupture</span>';
+            }
+            return qty;
+        }
+
+        function renderStatus(active) {
+            return active
+                ? '<span class="badge badge-green">Actif</span>'
+                : '<span class="badge badge-red">Inactif</span>';
+        }
+
+        function renderCats(cats) {
+            if (!cats || !cats.length) return '-';
+            return `<span class="categories-list">${cats.map(c => c.name).join(', ')}</span>`;
+        }
+
         async function loadProducts(page = 1) {
             try {
-                const params = new URLSearchParams();
-                params.set('page', String(page));
-                params.set('per_page', '20');
-                if (currentQuery) {
-                    params.set('q', currentQuery);
-                }
-                if (currentCategoryId) {
-                    params.set('category_id', currentCategoryId);
-                }
+                const params = new URLSearchParams({ page: String(page), per_page: '20' });
+                if (currentQuery) params.set('q', currentQuery);
+                if (currentCategoryId) params.set('category_id', currentCategoryId);
 
-                showMessage('Chargement des produits…', 'info');
-
-                const res = await fetch(`${apiBaseUrl}/products/list.php?` + params.toString(), {
-                    method: 'GET',
-                    credentials: 'include'
-                });
+                showMessage('Chargement...', 'info');
+                const res = await fetch(`${apiBaseUrl}/products/list.php?` + params.toString());
                 const data = await res.json();
 
-                if (!data.success) {
-                    showMessage('Erreur lors du chargement des produits.', 'error');
-                    return;
-                }
+                if (!data.success) { showMessage('Erreur chargement.', 'error'); return; }
 
-                const payload = data.data;
-                renderProducts(payload.items);
+                renderProducts(data.data.items);
 
-                currentPage = payload.pagination.page;
-                totalPages = payload.pagination.total_pages;
-
-                paginationInfo.textContent =
-                    `Page ${payload.pagination.page} / ${payload.pagination.total_pages} · ` +
-                    `${payload.pagination.total_items} produit(s)`;
-
+                const p = data.data.pagination;
+                currentPage = p.page;
+                totalPages = p.total_pages;
+                paginationInfo.textContent = `Page ${p.page} / ${p.total_pages} · ${p.total_items} produit(s)`;
                 prevPageButton.disabled = currentPage <= 1;
                 nextPageButton.disabled = currentPage >= totalPages;
 
-                if (!payload.items.length) {
-                    showMessage('Aucun produit ne correspond aux filtres.', 'info');
-                } else {
-                    showMessage('', 'info');
-                }
+                showMessage('', 'info');
             } catch (error) {
                 console.error(error);
-                showMessage('Erreur de communication avec le serveur.', 'error');
+                showMessage('Erreur technique.', 'error');
             }
         }
 
@@ -479,36 +231,16 @@ require __DIR__ . '/_header.php';
             currentPage = 1;
             loadProducts(currentPage);
         });
-
-        searchInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                searchButton.click();
-            }
-        });
-
+        searchInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') searchButton.click(); });
         categoryFilter.addEventListener('change', () => {
-            currentQuery = searchInput.value.trim();
             currentCategoryId = categoryFilter.value;
+            currentQuery = searchInput.value.trim();
             currentPage = 1;
             loadProducts(currentPage);
         });
-
-        prevPageButton.addEventListener('click', () => {
-            if (currentPage > 1) {
-                loadProducts(currentPage - 1);
-            }
-        });
-
-        nextPageButton.addEventListener('click', () => {
-            if (currentPage < totalPages) {
-                loadProducts(currentPage + 1);
-            }
-        });
-
-        addProductButton.addEventListener('click', () => {
-            window.location.href = '/admin/product_form.php';
-        });
+        prevPageButton.addEventListener('click', () => { if(currentPage > 1) loadProducts(currentPage - 1); });
+        nextPageButton.addEventListener('click', () => { if(currentPage < totalPages) loadProducts(currentPage + 1); });
+        addProductButton.addEventListener('click', () => window.location.href = '/admin/product_form.php');
 
         (async function init() {
             await ensureAuthenticated();

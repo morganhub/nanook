@@ -1,3 +1,12 @@
+@font-face {
+    font-family: 'nanook';
+    src: url('https://nanook.paris/assets/fonts/nanook.woff2') format('woff2'),
+    url('https://nanook.paris/assets/fonts/nanook.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
 :root {
     /* Palette Éditoriale */
     --nk-bg-color: #FDFBF7;        /* Blanc cassé / Coquille d'oeuf */
@@ -7,8 +16,8 @@
     --nk-border: #E5E5E5;
 
     /* Typographie */
-    --nk-font-serif: 'Playfair Display', serif; /* Titres */
-    --nk-font-sans: 'Lato', sans-serif;         /* Corps */
+    --nk-font-serif: "Dancing Script", cursive;
+    --nk-font-sans:  "Nunito", sans-serif;
 
     /* Espacements */
     --nk-spacing-xs: 8px;
@@ -33,9 +42,9 @@ img { max-width: 100%; display: block; height: auto; }
 button { cursor: pointer; border: none; background: none; font-family: inherit; }
 
 /* --- Typographie --- */
-.nk-title-xl { font-family: var(--nk-font-serif); font-size: 3rem; font-style: italic; line-height: 1.2; }
-.nk-title-lg { font-family: var(--nk-font-serif); font-size: 2rem; font-weight: 400; }
-.nk-title-md { font-family: var(--nk-font-serif); font-size: 1.5rem; }
+.nk-title-xl { font-family: var(--nk-font-serif); font-size: 4rem; font-style: italic; line-height: 1.2; }
+.nk-title-lg { font-family: var(--nk-font-serif); font-size: 5rem; font-weight: 400; }
+.nk-title-md { font-family: var(--nk-font-serif); font-size: 2.7rem; }
 .nk-text-body { font-size: 1rem; color: var(--nk-text-light); }
 .nk-price { font-weight: 700; font-size: 0.95rem; letter-spacing: 0.5px; }
 
@@ -59,8 +68,15 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .nk-header.is-scrolled { border-bottom-color: var(--nk-border); }
 .nk-nav-flex { display: flex; justify-content: space-between; align-items: center; }
-.nk-logo { font-family: var(--nk-font-serif); font-size: 1.8rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; }
-.nk-menu-desktop { display: none; gap: var(--nk-spacing-md); }
+.nk-logo {
+    font-family: nanook, Arial, sans-serif;
+    font-size: 2.3rem; letter-spacing: 2px;
+    text-transform: uppercase; font-weight: 700; }
+.nk-menu-desktop {
+    gap: var(--nk-spacing-md);
+    display: flex;
+    gap: 40px;
+}
 
 /* --- Grille Éditoriale (Le cœur) --- */
 .nk-grid {
@@ -124,7 +140,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 
 .nk-product-info { text-align: center; margin-top: var(--nk-spacing-xs); }
-.nk-product-name { font-size: 1rem; margin-bottom: 4px; }
+.nk-product-name { font-family:nanook, sans-serif; font-size: 1.6rem; line-height:1.6rem; margin-bottom:6px; margin-top:12px; }
 .nk-product-price { color: var(--nk-text-light); font-size: 0.9rem; }
 
 /* --- Bloc Ambiance (Break visuel) --- */
@@ -189,7 +205,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 /* En Desktop, on cache le burger et on affiche le menu texte */
 @media (min-width: 992px) {
     .nk-burger { display: none; }
-    .nk-menu-desktop { display: none; gap: 30px; }
+    .nk-menu-desktop {  gap: 30px; }
 }
 
 /* En Mobile, on cache le menu texte */
@@ -242,18 +258,19 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .nk-story-title {
     font-family: var(--nk-font-serif);
-    font-size: 1.5rem;
-    text-transform: uppercase;
+    font-size: 2.5rem;
     letter-spacing: 2px;
-    margin-bottom: 30px;
-    color: #999; /* Titre discret style Hermès */
+    text-align: left;
+    margin-bottom: 5px;
+    color: #000; /* Titre discret style Hermès */
 }
 .nk-story-text {
-    font-family: var(--nk-font-serif); /* Serif pour le texte long */
+    font-family: var(--nk-font-sans); /* Serif pour le texte long */
     font-size: 1.1rem;
     line-height: 1.8;
-    max-width: 600px;
+    /*max-width: 600px;*/
     margin: 0 auto;
+    text-align: left;
 }
 
 /* Colonne Droite : Sidebar Sticky avec Glassmorphism */
@@ -275,14 +292,14 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 
 .nk-product-title {
-    font-family: var(--nk-font-serif);
-    font-size: 1.8rem;
+    font-family:nanook, sans-serif;
+    font-size: 3.6vw;
     font-weight: 400;
     margin: 0 0 10px 0;
     line-height: 1.2;
 }
 
-.nk-product-price {
+.nk-product-sidebar .nk-product-price {
     font-family: var(--nk-font-sans);
     font-weight: 700;
     font-size: 1.2rem;
@@ -392,13 +409,15 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     color: #ccc;
 }
 .btn-glass {
-    display: inline-block;
+    margin: auto auto 30px auto;
+    display: flex;
+    width: fit-content;
     padding: 10px 18px;
     border-radius: 14px;
     background: linear-gradient(
             135deg,
-            rgba(255, 255, 255, 0.18),
-            rgba(255, 255, 255, 0.06)
+            rgba(255, 255, 255, 0.28),
+            rgba(255, 255, 255, 0.16)
     );
     backdrop-filter: blur(14px) saturate(160%);
     -webkit-backdrop-filter: blur(14px) saturate(160%);
@@ -442,17 +461,17 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     outline-offset: 3px;
 }
 .hero-title {
-    margin: 0 0 24px;
-    font-size: 3rem;
+    font-family: var(--nk-font-serif);
+    margin: auto;
+    font-size: 9rem;
     line-height: 1.1;
     font-weight: 800;
     letter-spacing: 0.08em;
-    text-transform: uppercase;
     color: #f9fafb;
     position: relative;
     display: inline-block;
     padding-bottom: 10px;
-    text-shadow: 0 10px 35px rgba(0, 0, 0, 0.75);
+    text-shadow: -2px -2px 2px rgba(255,255,255,.1), 2px 2px 2px rgba(0,0,0,.5);
 }
 
 .hero-title::after {
@@ -478,7 +497,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 @media (max-width: 768px) {
     .hero-title {
-        font-size: 2.2rem;
+        font-size: 4.2rem;
         letter-spacing: 0.06em;
     }
     .nk-grid {

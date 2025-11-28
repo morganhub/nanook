@@ -106,15 +106,28 @@ if (!empty($productIds)) {
         $categoriesByProduct[$pid][] = ['id' => (int)$row['id'], 'name' => $row['name']];
     }
 
-    // 2. Variants
+    // 2. Variants (AVEC RECONSTRUCTION DU NOM)
+    // On joint les tables pour avoir "Grand - Rouge"
     $varStmt = $pdo->prepare(
         'SELECT 
-            v.id, v.product_id, v.name, v.sku, v.price, v.stock_quantity, 
-            v.allow_preorder_when_oos, v.availability_date, v.is_active
+            v.id, 
+            v.product_id, 
+            v.sku, 
+            v.price, 
+            v.stock_quantity, 
+            v.allow_preorder_when_oos, 
+            v.availability_date, 
+            v.is_active,
+            GROUP_CONCAT(o.name ORDER BY a.display_order SEPARATOR " - ") as calculated_name
          FROM nanook_product_variants v
+         LEFT JOIN nanook_product_variant_combinations pvc ON v.id = pvc.variant_id
+         LEFT JOIN nanook_attribute_options o ON pvc.option_id = o.id
+         LEFT JOIN nanook_attributes a ON o.attribute_id = a.id
          WHERE v.product_id IN (' . $inPlaceholders . ')
-         ORDER BY v.display_order ASC, v.id ASC'
+         GROUP BY v.id
+         ORDER BY v.id ASC' // ou v.display_order si vous l'avez gardé
     );
+
     $varStmt->execute($productIds);
     while ($row = $varStmt->fetch()) {
         $pid = (int)$row['product_id'];
@@ -126,6 +139,10 @@ if (!empty($productIds)) {
         $row['stock_quantity'] = (int)$row['stock_quantity'];
         $row['allow_preorder_when_oos'] = (int)$row['allow_preorder_when_oos'];
         $row['is_active'] = (int)$row['is_active'];
+
+        // Fallback nom si vide (cas variante sans option)
+        $row['name'] = !empty($row['calculated_name']) ? $row['calculated_name'] : 'Standard';
+        unset($row['calculated_name']); // nettoyage
 
         $variantsByProduct[$pid][] = $row;
     }

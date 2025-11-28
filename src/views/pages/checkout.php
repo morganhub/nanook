@@ -1,4 +1,5 @@
 <?php
+// src/views/pages/checkout.php
 require_once __DIR__ . '/../../services/CartService.php';
 $cartService = new CartService();
 $cartData = $cartService->getCartDetails();
@@ -13,7 +14,7 @@ if (empty($cartData['items'])) {
 
 // --- LOGIQUE DE DATES & TRI ---
 $currentDate = date('Y-m-d');
-$cutoffDate = '2025-12-20';
+$cutoffDate = '2025-12-20'; // Date limite pour garantir Noël
 $showShippingOptions = ($currentDate <= $cutoffDate);
 
 $christmasLimit = '2025-12-25';
@@ -24,7 +25,9 @@ foreach ($cartData['items'] as $item) {
     $isAvailableForXmas = true;
     $dateLabel = 'En stock';
 
+    // Logique : Un item est "précommande" si le stock physique est insuffisant
     if ($item['is_preorder']) {
+        // Si pas de date ou date après Noël -> Pas dispo pour Noël
         if (!$item['availability_date'] || $item['availability_date'] >= $christmasLimit) {
             $isAvailableForXmas = false;
         }
@@ -54,7 +57,6 @@ foreach ($cartData['items'] as $item) {
     <form action="/checkout/process" method="POST" id="checkoutForm" style="display: grid; grid-template-columns: 1fr; gap: 40px; @media(min-width:900px){ grid-template-columns: 1.5fr 1fr; }">
 
         <div>
-            <!-- 1. MODE DE RÉCEPTION (Nouveau) -->
             <div style="background: #fff; padding: 30px; border: 1px solid var(--nk-border); margin-bottom: 30px;">
                 <h3 class="nk-title-md" style="margin-bottom: 20px;">Mode de réception</h3>
 
@@ -69,13 +71,12 @@ foreach ($cartData['items'] as $item) {
                 <label class="nk-radio-box js-method-option">
                     <input type="radio" name="delivery_method" value="pickup">
                     <div>
-                        <div style="font-weight: 700;">Remise en mains propres (Boulogne)</div>
+                        <div style="font-weight: 700;">Remise en mains propres (Paris/Boulogne)</div>
                         <div style="font-size: 0.9rem; color: #666;">Sur rendez-vous</div>
                     </div>
                 </label>
             </div>
 
-            <!-- 2. COORDONNÉES (Toujours là) -->
             <div style="background: #fff; padding: 30px; border: 1px solid var(--nk-border); margin-bottom: 30px;">
                 <h3 class="nk-title-md" style="margin-bottom: 20px;">Vos coordonnées</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
@@ -86,9 +87,8 @@ foreach ($cartData['items'] as $item) {
                     <label class="nk-label">Email</label><input type="email" name="email" class="nk-input" required>
                 </div>
 
-                <!-- 3. ADRESSE (Conditionnelle) -->
                 <div id="addressBlock" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
-                    <h4 class="nk-title-md" style="font-size: 1rem; margin-bottom: 15px;">Adresse d'expédition</h4>
+                    <h4 class="nk-title-md" style="  margin-bottom: 15px;">Adresse d'expédition</h4>
                     <div style="margin-bottom: 20px;">
                         <label class="nk-label">Adresse</label>
                         <input type="text" name="address1" class="nk-input js-addr-req" placeholder="Numéro et rue" required>
@@ -101,7 +101,6 @@ foreach ($cartData['items'] as $item) {
                 </div>
             </div>
 
-            <!-- 4. PRÉFÉRENCE TEMPORELLE (Si date OK) -->
             <?php if ($showShippingOptions): ?>
                 <div style="background: #fff; padding: 30px; border: 1px solid var(--nk-border);">
                     <h3 class="nk-title-md" style="margin-bottom: 20px;">Délai souhaité ?</h3>
@@ -126,7 +125,6 @@ foreach ($cartData['items'] as $item) {
             <?php endif; ?>
         </div>
 
-        <!-- SIDEBAR RÉSUMÉ -->
         <div>
             <div style="background: #F9F9F9; padding: 30px; position: sticky; top: 120px;">
                 <h3 class="nk-title-md" style="margin-bottom: 20px;">Résumé</h3>
@@ -139,7 +137,7 @@ foreach ($cartData['items'] as $item) {
                             <div class="nk-cart-thumb">
                                 <a href="/p/<?= htmlspecialchars($item['slug']) ?>">
                                     <?php $img = $item['image'] ? '/storage/product_images/'.$item['image'] : '/assets/img/placeholder.jpg'; ?>
-                                    <img src="<?= htmlspecialchars($img) ?>" alt="">
+                                    <img src="<?= htmlspecialchars($img) ?>" alt="<?= htmlspecialchars($item['name']) ?>">
                                 </a>
                             </div>
 
@@ -147,10 +145,12 @@ foreach ($cartData['items'] as $item) {
                                 <a href="/p/<?= htmlspecialchars($item['slug']) ?>" style="text-decoration: none; color: inherit;">
                                     <div style="font-weight:600;"><?= htmlspecialchars($item['name']) ?></div>
                                 </a>
-                                <?php if($item['variant_name']): ?>
-                                    <div style="font-size: 0.8rem; color: #888;"><?= htmlspecialchars($item['variant_name']) ?></div>
+
+                                <?php if(!empty($item['variant_name'])): ?>
+                                    <div style="font-size: 0.8rem; color: #666; margin-top:2px;"><?= htmlspecialchars($item['variant_name']) ?></div>
                                 <?php endif; ?>
-                                <div style="font-size: 0.8rem; color: #888;">Qté: <?= $item['quantity'] ?></div>
+
+                                <div style="font-size: 0.8rem; color: #888; margin-top:4px;">Qté: <?= $item['quantity'] ?></div>
                             </div>
 
                             <div style="text-align:right;">
@@ -185,7 +185,7 @@ foreach ($cartData['items'] as $item) {
     .nk-radio-box:hover { border-color: var(--nk-accent); }
     .nk-radio-box:has(input:checked) { border-color: var(--nk-accent); background: #FDFBF7; }
     .nk-cart-item { display: flex; gap: 15px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; position: relative; }
-    .nk-cart-thumb { width: 50px; height: 50px; background: #fff; object-fit: cover; flex-shrink: 0; }
+    .nk-cart-thumb { width: 50px; height: 50px; background: #fff; object-fit: cover; flex-shrink: 0; border:1px solid #eee; }
     .nk-cart-thumb img { width: 100%; height: 100%; object-fit: cover; }
     .nk-badge-preorder { display: inline-block; background: #C18C5D; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; text-transform: uppercase; }
     .nk-item-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #999; font-size: 0.8rem; backdrop-filter: grayscale(1); z-index: 2; pointer-events: none; }
@@ -210,26 +210,20 @@ foreach ($cartData['items'] as $item) {
         // --- GESTION AFFICHAGE ADRESSE (Toggle) ---
         function toggleAddress(method) {
             if (method === 'pickup') {
-                // Cache l'adresse et retire le required
                 addressBlock.style.display = 'none';
                 addressRequiredInputs.forEach(input => input.required = false);
             } else {
-                // Affiche l'adresse et remet le required
                 addressBlock.style.display = 'block';
                 addressRequiredInputs.forEach(input => input.required = true);
             }
         }
 
         methodRadios.forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                toggleAddress(e.target.value);
-            });
+            radio.addEventListener('change', (e) => { toggleAddress(e.target.value); });
         });
 
-        // Init Address State
         const checkedMethod = document.querySelector('input[name="delivery_method"]:checked');
         if(checkedMethod) toggleAddress(checkedMethod.value);
-
 
         // --- GESTION FILTRE VISUEL NOEL/PLUS TARD ---
         function updateCartView(mode) {

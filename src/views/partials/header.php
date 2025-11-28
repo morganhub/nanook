@@ -1,3 +1,13 @@
+<?php
+// src/views/partials/header.php
+
+// 1. Récupération des catégories actives pour le menu
+// On utilise getPdo() qui est disponible globalement
+$pdoNav = getPdo();
+$stmtNav = $pdoNav->query("SELECT name, slug FROM nanook_categories ORDER BY display_order ASC");
+$navCategories = $stmtNav->fetchAll(PDO::FETCH_ASSOC);
+?>
+
 <header class="nk-header" id="mainHeader">
     <div class="nk-container nk-nav-flex">
         <button class="nk-burger" id="burgerBtn" aria-label="Menu">
@@ -11,9 +21,13 @@
         <a href="/" class="nk-logo" aria-label="Accueil">Nanook</a>
 
         <nav class="nk-menu-desktop">
-            <a href="/c/bracelet">Bracelets</a>
-            <a href="/c/porte-carte">Porte-Cartes</a>
-            <a href="/c/vide-poche">Vide-Poches</a>
+            <?php foreach ($navCategories as $cat): ?>
+                <a href="/c/<?= htmlspecialchars($cat['slug']) ?>">
+                    <?= htmlspecialchars($cat['name']) ?>
+                </a>
+            <?php endforeach; ?>
+
+            <a href="/i/a-propos">À Propos</a>
         </nav>
 
         <div class="nk-nav-actions">
@@ -32,10 +46,16 @@
     </div>
     <div class="nk-cart-body" style="display:flex; flex-direction:column; gap:20px; padding-top:40px;">
         <a href="/" class="nk-title-lg" style="font-size:1.5rem;">Accueil</a>
-        <a href="/c/bracelet" class="nk-title-lg" style="font-size:1.5rem;">Bracelets</a>
-        <a href="/c/porte-carte" class="nk-title-lg" style="font-size:1.5rem;">Porte-Cartes</a>
-        <a href="/c/vide-poche" class="nk-title-lg" style="font-size:1.5rem;">Vide-Poches</a>
+
+        <?php foreach ($navCategories as $cat): ?>
+            <a href="/c/<?= htmlspecialchars($cat['slug']) ?>" class="nk-title-lg" style="font-size:1.5rem;">
+                <?= htmlspecialchars($cat['name']) ?>
+            </a>
+        <?php endforeach; ?>
+
         <hr style="border:0; border-top:1px solid #eee; width:100%;">
-        <a href="/journal">Le Journal</a>
+
+        <a href="/i/a-propos" class="nk-title-lg" style="font-size:1.5rem;">À Propos</a>
+
     </div>
 </div>

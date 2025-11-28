@@ -56,6 +56,30 @@ if (preg_match('#^/c/([a-z0-9-]+)$#', $requestUri, $matches)) {
     }
 }
 
+if (preg_match('#^/i/([a-z0-9-]+)$#', $requestUri, $matches)) {
+    $slug = $matches[1];
+
+
+    $stmt = $pdo->prepare("SELECT * FROM nanook_pages WHERE slug = :slug AND is_active = 1");
+    $stmt->execute([':slug' => $slug]);
+    $cmsPage = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($cmsPage) {
+        // SEO
+        $pageTitle = htmlspecialchars($cmsPage['title']) . ' | Nanook Paris';
+        $metaDescription = $cmsPage['chapeau'] ? substr(strip_tags($cmsPage['chapeau']), 0, 160) : 'Nanook Paris - Page d\'information';
+
+        // Récupération des images
+        $stmtImg = $pdo->prepare("SELECT file_path FROM nanook_page_images WHERE page_id = :pid ORDER BY display_order ASC");
+        $stmtImg->execute([':pid' => $cmsPage['id']]);
+        $cmsPage['images'] = $stmtImg->fetchAll(PDO::FETCH_ASSOC);
+
+        $pageContent = $viewPath . 'cms_page.php';
+        require $layoutPath;
+        exit;
+    }
+}
+
 // Fiche Produit (ex: /p/vide-poche-cuir)
 if (preg_match('#^/p/([a-z0-9-]+)$#', $requestUri, $matches)) {
     $slug = $matches[1];

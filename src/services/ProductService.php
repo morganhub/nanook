@@ -51,6 +51,20 @@ function getHomeProducts(PDO $pdo, int $limit = 8): array
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function generateCombinations(array $arrays): array {
+    $result = [[]];
+    foreach ($arrays as $property => $property_values) {
+        $tmp = [];
+        foreach ($result as $result_item) {
+            foreach ($property_values as $property_value) {
+                $tmp[] = array_merge($result_item, [$property => $property_value]);
+            }
+        }
+        $result = $tmp;
+    }
+    return $result;
+}
+
 function getProductBySlug(PDO $pdo, string $slug): ?array
 {
     // 1. Infos produit (récupère availability_date automatiquement via *)

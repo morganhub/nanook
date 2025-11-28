@@ -640,6 +640,14 @@ require __DIR__ . '/head.php';
            class="admin-nav-link<?php echo $activeMenu === 'categories' ? ' admin-nav-link--active' : ''; ?>">
             Catégories
         </a>
+        <a href="/admin/attributes.php"
+           class="admin-nav-link<?php echo $activeMenu === 'attributes' ? ' admin-nav-link--active' : ''; ?>">
+            Attributs
+        </a>
+        <a href="/admin/pages.php"
+           class="admin-nav-link<?php echo $activeMenu === 'pages' ? ' admin-nav-link--active' : ''; ?>">
+            Pages
+        </a>
         <a href="/admin/users.php"
            class="admin-nav-link<?php echo $activeMenu === 'users' ? ' admin-nav-link--active' : ''; ?>">
             Utilisateurs
