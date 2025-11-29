@@ -1,25 +1,25 @@
 <?php
-
+// src/views/pages/cms_page.php
 if (!isset($cmsPage)) return;
 require_once __DIR__ . '/../../services/TextService.php';
+// --- CONFIGURATION ---
+$gridCols = 4; // Nombre de colonnes de la grille
+$charsPerBlock = 150; // Nombre approx de caractères avant de couper un bloc pour insérer une image
 
-$gridCols = 4; 
-$charsPerBlock = 150; 
-
-
+// --- 1. PARSING DU CONTENU ---
 $contentHtml = $cmsPage['content'] ?? '';
 $images = $cmsPage['images'] ?? [];
-$blocks = []; 
+$blocks = []; // Tableau qui contiendra [ 'html' => string, 'has_image' => bool, 'image' => array|null ]
 
 if (!empty($contentHtml)) {
     $dom = new DOMDocument();
-    
+    // Hack UTF-8
     libxml_use_internal_errors(true);
     $dom->loadHTML('<?xml encoding="utf-8" ?><body>' . $contentHtml . '</body>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
     libxml_clear_errors();
 
     $xpath = new DOMXPath($dom);
-    $nodes = $xpath->query('
+    $nodes = $xpath->query('//body/*');
 
     $currentHtml = '';
     $currentLength = 0;
@@ -32,13 +32,13 @@ if (!empty($contentHtml)) {
         $currentHtml .= $nodeHtml;
         $currentLength += $textLen;
 
-        
-        
+        // Condition de coupure : on a assez de texte ET ce n'est pas un titre (pour ne pas couper juste après un titre)
+        // ET il nous reste des images à placer
         $tagName = strtolower($node->nodeName);
         $isTitle = in_array($tagName, ['h1','h2','h3','h4','h5','h6']);
 
         if ($currentLength >= $charsPerBlock && !$isTitle && isset($images[$imgIndex])) {
-            
+            // On valide ce bloc avec une image
             $blocks[] = [
                 'html' => $currentHtml,
                 'image' => $images[$imgIndex],
@@ -50,7 +50,7 @@ if (!empty($contentHtml)) {
         }
     }
 
-    
+    // Reste du contenu (sans image associée si on a tout utilisé)
     if (!empty($currentHtml)) {
         $blocks[] = [
             'html' => $currentHtml,
@@ -61,7 +61,7 @@ if (!empty($contentHtml)) {
     }
 }
 
-
+// Images restantes (si le texte est trop court pour toutes les afficher)
 $remainingImages = [];
 for ($i = $imgIndex; $i < count($images); $i++) {
     $remainingImages[] = $images[$i];
@@ -81,7 +81,7 @@ for ($i = $imgIndex; $i < count($images); $i++) {
 
     <div class="cms-layout">
         <?php
-        $sideToggle = 0; 
+        $sideToggle = 0; // 0 = Image Gauche, 1 = Image Droite
         foreach ($blocks as $block):
             $block['html'] = autoLinkContact($block['html'], $pdo);
             ?>
@@ -89,7 +89,7 @@ for ($i = $imgIndex; $i < count($images); $i++) {
             <?php if ($block['type'] === 'mixed' && $block['image']): ?>
             <?php
             $imgSrc = '/storage/page_images/' . htmlspecialchars($block['image']['file_path']);
-            
+            // Alternance
             $rowClass = ($sideToggle % 2 === 0) ? 'row-img-left' : 'row-img-right';
             $sideToggle++;
             ?>

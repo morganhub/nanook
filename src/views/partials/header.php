@@ -50,9 +50,11 @@ $navCategories = $stmtNav->fetchAll(PDO::FETCH_ASSOC);
         <a href="/" class="nk-title-lg" style="font-size:1.5rem;">Accueil</a>
 
         <?php foreach ($navCategories as $cat): ?>
+        <?php if ((int)$cat['is_active'] === 1): ?>
             <a href="/c/<?= htmlspecialchars($cat['slug']) ?>" class="nk-title-lg" style="font-size:1.5rem;">
                 <?= htmlspecialchars($cat['name']) ?>
             </a>
+            <?php endif; ?>
         <?php endforeach; ?>
 
         <hr style="border:0; border-top:1px solid #eee; width:100%;">

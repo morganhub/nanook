@@ -1,4 +1,5 @@
 <?php
+// src/views/pages/product.php
 
 require_once __DIR__ . '/../../services/TextService.php';
 if (!isset($product) || !$product) {
@@ -8,7 +9,7 @@ if (!isset($product) || !$product) {
 
 $pdo = getPdo();
 
-
+// --- TRI DES IMAGES ---
 $commonImages = [];
 $variantImagesMap = [];
 
@@ -27,7 +28,7 @@ if (empty($commonImages)) {
     $commonImages[] = ['file_path' => null];
 }
 
-
+// --- LOGIQUE VARIANTES & ATTRIBUTS ---
 $hasVariants = !empty($product['variants']);
 $attributesDisplay = [];
 $combinationsMap = [];
@@ -35,7 +36,7 @@ $jsCombinations = [];
 $firstVariantId = null;
 
 if ($hasVariants) {
-    
+    // Récupération optimisée des attributs pour ce produit
     $stmtAttrs = $pdo->prepare("
         SELECT 
             v.id as variant_id,
@@ -56,7 +57,7 @@ if ($hasVariants) {
         $aid = $row['attr_id'];
         $oid = $row['opt_id'];
 
-        
+        // Construction structure d'affichage
         if (!isset($attributesDisplay[$aid])) {
             $attributesDisplay[$aid] = [
                 'name' => $row['attr_name'],
@@ -73,14 +74,14 @@ if ($hasVariants) {
             $tempOptions[$aid][$oid] = true;
         }
 
-        
+        // Map combinaison -> variante
         if (!isset($combinationsMap[$row['variant_id']])) {
             $combinationsMap[$row['variant_id']] = [];
         }
         $combinationsMap[$row['variant_id']][] = (int)$oid;
     }
 
-    
+    // Construction Map JS pour mise à jour dynamique
     foreach ($product['variants'] as $v) {
         $vid = (int)$v['id'];
         if (!isset($combinationsMap[$vid])) continue;
@@ -103,7 +104,7 @@ if ($hasVariants) {
     }
 }
 
-
+// Prix initial
 if ($firstVariantId && isset($product['variants'][0])) {
     $initPrice = (float)$product['variants'][0]['price'];
     if (!$initPrice) $initPrice = (float)$product['price'];
@@ -118,12 +119,12 @@ if ($firstVariantId && isset($product['variants'][0])) {
         <div class="nk-product-visuals">
             <div class="nk-gallery-container" id="productGallery">
                 <?php
-                
+                // Images initiales (variante par défaut ou commun)
                 $initImages = ($firstVariantId && !empty($variantImagesMap[$firstVariantId]))
                     ? $variantImagesMap[$firstVariantId]
                     : $commonImages;
 
-                
+                // Image principale
                 $firstImgSrc = '/assets/img/placeholder.jpg';
                 if (!empty($initImages[0]['file_path'])) {
                     $firstImgSrc = '/storage/product_images/' . $initImages[0]['file_path'];
@@ -147,7 +148,6 @@ if ($firstVariantId && isset($product['variants'][0])) {
                 </div>
             </div>
 
-
         </div>
 
         <div class="nk-product-sidebar-wrapper">
@@ -162,7 +162,6 @@ if ($firstVariantId && isset($product['variants'][0])) {
                     <h1 class="nk-product-title"><?= htmlspecialchars($product['name']) ?></h1>
                     <div class="nk-product-price js-price-display"><?= number_format($initPrice, 2, ',', ' ') ?> €</div>
                 </div>
-
 
                 <form id="addToCartForm" class="nk-product-form">
                     <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
@@ -188,9 +187,10 @@ if ($firstVariantId && isset($product['variants'][0])) {
                                                        data-name="<?= htmlspecialchars($opt['name']) ?>">
 
                                                 <?php
-                                                
-                                                
-                                                
+                                                // Logique d'affichage (Couleur, Image ou Texte)
+                                                // Si type "color", la value est un code hexa
+                                                // Si type "image", la value est un chemin fichier
+                                                // Sinon texte
                                                 $val = $opt['value'];
                                                 $isHex = ($val && strpos($val, '#') === 0);
                                                 ?>
@@ -254,7 +254,6 @@ if ($firstVariantId && isset($product['variants'][0])) {
 
                 </form>
 
-
                 <div class="nk-product-desc-short" id="shortDescDisplay">
                     <?= autoLinkContact(nl2br(htmlspecialchars($product['short_description'] ?? '')), $pdo) ?>
                 </div>
@@ -264,7 +263,7 @@ if ($firstVariantId && isset($product['variants'][0])) {
 </div>
 
 <style>
-    
+    /* --- CSS SPECIFIQUE SLIDER --- */
     .nk-gallery-container { display: flex; flex-direction: column; gap: 15px; }
 
     .nk-main-image-wrapper {
@@ -284,7 +283,7 @@ if ($firstVariantId && isset($product['variants'][0])) {
     .nk-thumb:hover { opacity: 1; }
     .nk-thumb.active { border-color: var(--nk-text-main); opacity: 1; }
 
-    
+    /* --- ATTRIBUTS --- */
     .nk-attr-label .nk-swatch-box {
         border: unset;
         border-radius: 16px;
@@ -309,7 +308,7 @@ if ($firstVariantId && isset($product['variants'][0])) {
 </style>
 
 <script>
-    
+    // Données PHP injectées
     const productBase = {
         price: <?= (float)$product['price'] ?>,
         stock: <?= (int)$product['stock_quantity'] ?>,
@@ -319,7 +318,7 @@ if ($firstVariantId && isset($product['variants'][0])) {
         images: <?= json_encode($commonImages) ?>
     };
 
-    
+    // Combinaisons
     const combinations = <?= json_encode($jsCombinations) ?>;
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -331,7 +330,7 @@ if ($firstVariantId && isset($product['variants'][0])) {
         const variantInput = document.getElementById('selectedVariantId');
         const quantityInput = document.getElementById('quantityInput');
 
-        
+        // Galerie
         const mainImgWrap = document.querySelector('.nk-main-image-wrapper');
         const mainImg = document.getElementById('mainImg');
         const thumbsContainer = document.getElementById('thumbsContainer');
@@ -342,23 +341,43 @@ if ($firstVariantId && isset($product['variants'][0])) {
         let touchStartX = 0;
         let touchEndX = 0;
 
-        
+        // --- FONCTIONS SLIDER CORRIGÉES ---
         function startSlider() {
             stopSlider();
             sliderInterval = setInterval(() => nextImage(), 4000);
         }
         function stopSlider() { if(sliderInterval) clearInterval(sliderInterval); }
+
         function showImage(index) {
             if(!currentImages.length) return;
             if(index >= currentImages.length) index = 0;
             if(index < 0) index = currentImages.length - 1;
             currentIdx = index;
+
+            // Transition image principale
             mainImg.style.opacity = '0.8';
             setTimeout(() => { mainImg.src = currentImages[currentIdx]; mainImg.style.opacity = '1'; }, 100);
+
+            // Gestion Active Class sur les pouces
             document.querySelectorAll('.nk-thumb').forEach(t => t.classList.remove('active'));
             const activeThumb = document.querySelector(`.nk-thumb[data-index="${currentIdx}"]`);
-            if(activeThumb) { activeThumb.classList.add('active'); activeThumb.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'}); }
+
+            if(activeThumb) {
+                activeThumb.classList.add('active');
+
+                // --- CORRECTIF SCROLL ---
+                // Au lieu de scrollIntoView() qui bouge toute la page, on scrolle manuellement le conteneur
+                const container = document.getElementById('thumbsContainer');
+                if (container) {
+                    const leftPos = activeThumb.offsetLeft - (container.clientWidth / 2) + (activeThumb.clientWidth / 2);
+                    container.scrollTo({
+                        left: leftPos,
+                        behavior: 'smooth'
+                    });
+                }
+            }
         }
+
         function nextImage() { showImage(currentIdx + 1); }
         function prevImage() { showImage(currentIdx - 1); }
 
@@ -384,9 +403,10 @@ if ($firstVariantId && isset($product['variants'][0])) {
             mainImgWrap.addEventListener('touchend', e => { touchEndX = e.changedTouches[0].screenX; if(touchStartX - touchEndX > 50) nextImage(); if(touchEndX - touchStartX > 50) prevImage(); }, {passive: true});
         }
 
+        // Init initial
         initGallery(productBase.images);
 
-        
+        // --- UI UTILS ---
         const formatPrice = (p) => new Intl.NumberFormat('fr-FR', {style:'decimal', minimumFractionDigits:2}).format(p) + ' €';
         const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', {month:'long', year:'numeric'}) : "date inconnue";
 
@@ -417,7 +437,7 @@ if ($firstVariantId && isset($product['variants'][0])) {
             }
         }
 
-        
+        // Met à jour les classes .active sur les labels
         function updateActiveClasses() {
             document.querySelectorAll('.nk-attr-label').forEach(label => {
                 const input = label.querySelector('input');
@@ -429,6 +449,7 @@ if ($firstVariantId && isset($product['variants'][0])) {
             });
         }
 
+        // Met à jour le texte à côté du nom de l'attribut (ex: Couleur : Rouge)
         function updateAttributeLabels() {
             const groups = document.querySelectorAll('.nk-attributes-section .nk-form-group');
             groups.forEach(group => {
@@ -441,8 +462,8 @@ if ($firstVariantId && isset($product['variants'][0])) {
         }
 
         function checkCombination() {
-            updateActiveClasses(); 
-            updateAttributeLabels(); 
+            updateActiveClasses(); // Visuel swatch
+            updateAttributeLabels(); // Visuel texte
 
             const groups = document.querySelectorAll('.nk-attributes-section .nk-form-group');
             let selectedIds = [];
@@ -462,6 +483,7 @@ if ($firstVariantId && isset($product['variants'][0])) {
                 return;
             }
 
+            // Clé de combinaison triée
             selectedIds.sort((a, b) => a - b);
             const key = selectedIds.join('_');
             const variant = combinations[key];
@@ -474,6 +496,7 @@ if ($firstVariantId && isset($product['variants'][0])) {
                 return;
             }
 
+            // MAJ UI
             variantInput.value = variant.id;
             const finalPrice = (variant.price !== null && variant.price > 0) ? variant.price : productBase.price;
             priceDisplay.textContent = formatPrice(finalPrice);
@@ -481,16 +504,18 @@ if ($firstVariantId && isset($product['variants'][0])) {
             if (variant.desc && variant.desc.trim() !== "") descDisplay.innerHTML = variant.desc;
             else descDisplay.innerHTML = productBase.desc;
 
+            // Changement Images SI la variante en a
             if (variant.images && variant.images.length > 0) initGallery(variant.images);
             else initGallery(productBase.images);
 
             updateButtonState(variant.stock, variant.preorder === 1, variant.date);
         }
 
+        // Listeners
         if (document.querySelector('.js-attr-radio')) {
             attrRadios.forEach(r => r.addEventListener('change', checkCombination));
 
-            
+            // Auto-select si 1 seule option
             const groups = document.querySelectorAll('.nk-attributes-section .nk-form-group');
             let autoSelect = true;
             groups.forEach(g => { if(g.querySelector('input:checked')) autoSelect=false; });
@@ -505,9 +530,11 @@ if ($firstVariantId && isset($product['variants'][0])) {
                 checkCombination();
             }
         } else {
+            // Produit simple
             updateButtonState(productBase.stock, productBase.preorder === 1, productBase.date);
         }
 
+        // Quantité
         document.querySelectorAll('.js-qty-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 let val = parseInt(quantityInput.value);
@@ -515,6 +542,7 @@ if ($firstVariantId && isset($product['variants'][0])) {
                 if (isInc) quantityInput.value = val + 1;
                 else if (val > 1) quantityInput.value = val - 1;
 
+                // Re-vérifier stock
                 if (document.querySelector('.js-attr-radio')) checkCombination();
                 else updateButtonState(productBase.stock, productBase.preorder === 1, productBase.date);
             });

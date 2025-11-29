@@ -45,9 +45,6 @@ $products = getProductsByCategory($pdo, $slug);
                     <div class="nk-product-img-wrapper">
                         <img src="<?= htmlspecialchars($imgSrc) ?>" class="nk-product-img" alt="<?= htmlspecialchars($p['name']) ?>" loading="lazy">
 
-                        <button class="nk-quick-add-btn" data-id="<?= $p['id'] ?>" data-has-variants="0">
-                            Voir le détail
-                        </button>
                     </div>
                     <div class="nk-product-info">
                         <div class="nk-product-name"><?= htmlspecialchars($p['name']) ?></div>

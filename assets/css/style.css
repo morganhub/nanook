@@ -292,8 +292,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 
 .nk-product-title {
-    font-family:nanook, sans-serif;
-    font-size: 3.6vw;
+    font-family:var(--nk-font-serif);
+    font-size: 4.6vw;
     font-weight: 400;
     margin: 0 0 10px 0;
     line-height: 1.2;
@@ -523,16 +523,16 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 
 .cms-layout {
-    font-family: var(--nk-font-serif);
+    font-family: var(--nk-font-sans);
     display: flex;
     flex-direction: column;
     gap: 60px;
 }
 .cms-layout p {
-    font-size: 3vw;
+    font-size: 1.7rem;
     max-font-size: 40px;
-    line-height: 5vw;
-    text-align: center;
+    line-height: 2.4rem;
+    text-align: left;
 }
 .cms-row {
     display: grid;
@@ -622,6 +622,10 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     .row-img-right .cms-cell-text {
         padding: 0;
     }
+}
+
+.nk-product-visuals{
+    padding-bottom:10px;
 }
 
 .cms-gallery-fallback {
