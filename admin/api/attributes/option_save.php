@@ -17,7 +17,7 @@ $input = json_decode(file_get_contents('php://input'), true);
 if (isset($input['action']) && $input['action'] === 'disable') {
     $id = (int)($input['id'] ?? 0);
     if ($id <= 0) jsonResponse(['error' => 'invalid_id'], 400);
-    $pdo->prepare("UPDATE nanook_attribute_options SET is_active = 0 WHERE id = ?")->execute([$id]);
+    $pdo->prepare("DELETE FROM nanook_attribute_options WHERE id = ?")->execute([$id]);
     jsonResponse(['success' => true]);
 }
 

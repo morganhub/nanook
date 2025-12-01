@@ -54,7 +54,9 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     margin: 0 auto;
     padding: 0 var(--nk-spacing-sm);
 }
-
+.nk-container .nk-title-lg {
+    text-align: center;
+}
 
 .nk-header {
     position: sticky;
@@ -80,6 +82,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 
 .nk-grid {
+    margin-top:15px;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
@@ -312,6 +315,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     color: var(--nk-text-light);
     margin-bottom: 30px;
     line-height: 1.6;
+    margin-top:30px;
 }
 
 
@@ -460,17 +464,21 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     outline: 2px solid rgba(59, 130, 246, 0.9);
     outline-offset: 3px;
 }
+
+.hero-container {
+    height: 80vh; background: url('/assets/img/hero-nanook-3.jpg') center/cover no-repeat; display:flex; align-items:center; justify-content:center; margin-bottom:60px;
+}
+
 .hero-title {
     font-family: var(--nk-font-serif);
-    margin: auto;
+    margin: 5vh auto 10px auto;
     font-size: 9rem;
-    line-height: 1.1;
+    line-height: 0.9;
     font-weight: 800;
     letter-spacing: 0.08em;
     color: #f9fafb;
     position: relative;
     display: inline-block;
-    padding-bottom: 10px;
     text-shadow: -2px -2px 2px rgba(255,255,255,.1), 2px 2px 2px rgba(0,0,0,.5);
 }
 
@@ -504,6 +512,144 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
         grid-template-columns: 1fr;
     }
 }
+
+
+
+
+
+
+
+.nk-attr-options { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px; }
+.nk-attr-label input { display: none; }
+
+
+.nk-attr-label { cursor: pointer; position: relative; user-select: none; }
+
+
+.nk-swatch-text {
+    display: inline-block;
+    padding: 10px 15px;
+    border: 1px solid #E5E5E5;
+    background: #FFF;
+    color: var(--nk-text-main);
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    min-width: 40px;
+    text-align: center;
+}
+.nk-attr-label input:checked + .nk-swatch-text {
+    border-color: var(--nk-text-main);
+    background: var(--nk-text-main);
+    color: #FFF;
+}
+
+
+.nk-swatch-color {
+    display: block; width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 1px solid #E5E5E5;
+    box-shadow: inset 0 0 0 2px #FFF;
+    transition: transform 0.2s, border-color 0.2s;
+}
+.nk-attr-label input:checked + .nk-swatch-color {
+    border-color: var(--nk-text-main);
+    transform: scale(1.1);
+}
+
+
+.nk-swatch-image {
+    display: block; width: 50px; height: 50px;
+    border: 1px solid #E5E5E5;
+    background-size: cover; background-position: center;
+    text-indent: -9999px;
+    transition: all 0.2s;
+}
+.nk-attr-label input:checked + .nk-swatch-image {
+    border-color: var(--nk-text-main);
+    box-shadow: 0 0 0 1px var(--nk-text-main);
+}
+
+
+
+.nk-attr-label.is-unavailable {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+.nk-attr-label.is-unavailable .nk-swatch-text,
+.nk-attr-label.is-unavailable .nk-swatch-color,
+.nk-attr-label.is-unavailable .nk-swatch-image {
+
+    background-image: repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 5px,
+            rgba(0, 0, 0, 0.1) 5px,
+            rgba(0, 0, 0, 0.1) 10px
+    ) !important;
+
+    background-color: #f5f5f5;
+    color: #aaa;
+    border-color: #eee;
+    text-decoration: line-through;
+}
+.nk-attr-label.is-preorder {
+    margin-bottom: 12px;
+}
+
+
+.nk-attr-label.is-preorder::after {
+    content: "PRÉCO.";
+    position: absolute;
+    bottom: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    font-weight: 700;
+    color: #C18C5D;
+    white-space: nowrap;
+    line-height: 1;
+    letter-spacing: 0.5px;
+}
+
+
+.nk-attr-label.is-preorder .nk-swatch-text,
+.nk-attr-label.is-preorder .nk-swatch-box {
+    background-color: #f3f4f6 !important;
+    color: #555;
+    border-color: #d1d5db;
+}
+
+
+.nk-attr-label.is-preorder .nk-swatch-color,
+.nk-attr-label.is-preorder .nk-swatch-image {
+    opacity: 0.7;
+    box-shadow: 0 0 0 1px #d1d5db;
+}
+
+
+.nk-attr-label.is-preorder input:checked + .nk-swatch-color,
+.nk-attr-label.is-preorder input:checked + .nk-swatch-image {
+    opacity: 1;
+    box-shadow: 0 0 0 2px #FFF, 0 0 0 3px #C18C5D;
+}
+.nk-attr-label.is-preorder input:checked + .nk-swatch-text {
+    border-color: #C18C5D;
+    background: #FFF !important;
+    color: #C18C5D;
+}
+
+.nk-attributes-section .nk-form-group + .nk-form-group { margin-top:20px; }
+.nk-label { font-weight: 700; font-size: 0.9rem; margin-bottom: 5px; text-transform: uppercase; }
+.nk-gallery-container { display: flex; flex-direction: column; gap: 15px; }
+.nk-main-image-wrapper { position: relative; width: 100%; aspect-ratio: 4/5; overflow: hidden; background: #f9f9f9; }
+.nk-main-image-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.3s; }
+.nk-thumbnails { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+.nk-thumb { width: 70px; height: 70px; flex-shrink: 0; cursor: pointer; border: 1px solid transparent; opacity: 0.6; }
+.nk-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.nk-thumb.active { border-color: var(--nk-text-main); opacity: 1; }
+
+
+
 
 .cms-header {
     text-align: center;
@@ -715,6 +861,9 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     border-left: 6px solid var(--nk-text-main);
 }
 @media (max-width: 991px) {
+    .nk-product-desc-short {
+        margin-top:0;
+    }
     .nk-newsletter-content .nk-title-md {
         font-size: 2.5rem;
         line-height: 2rem;
@@ -735,6 +884,15 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
     .nk-gallery { gap: 2px; }
 
-
+    .hero-container {
+        height: 50vh;   margin-bottom:20px;
+    }
+    .btn-glass {
+        margin: auto auto 10px auto;
+        padding: 5px 12px;
+    }
+    .nk-title-lg {
+        font-size:3rem;
+    }
 
 }

@@ -1,5 +1,5 @@
 <?php
-
+// public/admin/api/product_images/upload.php
 declare(strict_types=1);
 
 require __DIR__ . '/../_bootstrap.php';
@@ -12,7 +12,6 @@ $pdo = getPdo();
 $admin = requireAdmin($pdo);
 
 $productId = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
-
 $variantId = isset($_POST['variant_id']) && $_POST['variant_id'] !== '' ? (int)$_POST['variant_id'] : null;
 
 if ($productId <= 0) {
@@ -24,7 +23,8 @@ if (empty($_FILES['image']) || !is_uploaded_file($_FILES['image']['tmp_name'])) 
 }
 
 $file = $_FILES['image'];
-$maxSize = 5 * 1024 * 1024; 
+// On garde une limite haute de poids pour l'upload initial (ex: 10MB pour ne pas saturer la RAM lors du resize)
+$maxSize = 10 * 1024 * 1024;
 
 if ($file['size'] > $maxSize) {
     jsonResponse(['error' => 'file_too_large'], 400);
@@ -59,11 +59,70 @@ $filename = $hash . '.' . $ext;
 $targetPath = $targetDir . '/' . $filename;
 $relativePath = $dir1 . '/' . $dir2 . '/' . $filename;
 
-if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
-    jsonResponse(['error' => 'upload_failed'], 500);
+// --- DÉBUT LOGIQUE REDIMENSIONNEMENT ---
+
+list($width, $height) = getimagesize($file['tmp_name']);
+$maxWidth = 800;
+
+// Si l'image est plus large que 800px, on redimensionne
+if ($width > $maxWidth) {
+    // Calcul de la nouvelle hauteur en gardant le ratio
+    $ratio = $height / $width;
+    $newWidth = $maxWidth;
+    $newHeight = (int)($newWidth * $ratio);
+
+    // Création de l'image source selon le type
+    $src = null;
+    switch ($mime) {
+        case 'image/jpeg': $src = imagecreatefromjpeg($file['tmp_name']); break;
+        case 'image/png': $src = imagecreatefrompng($file['tmp_name']); break;
+        case 'image/webp': $src = imagecreatefromwebp($file['tmp_name']); break;
+    }
+
+    if ($src) {
+        // Création de l'image vide destination
+        $dst = imagecreatetruecolor($newWidth, $newHeight);
+
+        // Gestion de la transparence (PNG/WebP)
+        if ($mime == 'image/png' || $mime == 'image/webp') {
+            imagealphablending($dst, false);
+            imagesavealpha($dst, true);
+            $transparent = imagecolorallocatealpha($dst, 255, 255, 255, 127);
+            imagefilledrectangle($dst, 0, 0, $newWidth, $newHeight, $transparent);
+        }
+
+        // Redimensionnement
+        imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+        // Sauvegarde dans le dossier cible
+        $saved = false;
+        switch ($mime) {
+            case 'image/jpeg': $saved = imagejpeg($dst, $targetPath, 85); break; // Qualité 85
+            case 'image/png': $saved = imagepng($dst, $targetPath, 9); break; // Compression max (0-9)
+            case 'image/webp': $saved = imagewebp($dst, $targetPath, 85); break; // Qualité 85
+        }
+
+        // Nettoyage mémoire
+        imagedestroy($src);
+        imagedestroy($dst);
+
+        if (!$saved) {
+            jsonResponse(['error' => 'resize_failed'], 500);
+        }
+    } else {
+        // Fallback si GD échoue à ouvrir l'image : on déplace tel quel
+        if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+            jsonResponse(['error' => 'upload_failed'], 500);
+        }
+    }
+} else {
+    // Pas de redimensionnement nécessaire, on déplace simplement
+    if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+        jsonResponse(['error' => 'upload_failed'], 500);
+    }
 }
 
-
+// --- FIN LOGIQUE REDIMENSIONNEMENT ---
 
 $stmt = $pdo->prepare('SELECT COUNT(*) AS cnt FROM nanook_product_images WHERE product_id = :pid');
 $stmt->execute([':pid' => $productId]);
@@ -78,9 +137,9 @@ $insert = $pdo->prepare(
 );
 $insert->execute([
     ':product_id' => $productId,
-    ':variant_id' => $variantId, 
+    ':variant_id' => $variantId,
     ':file_path' => $relativePath,
-    ':is_main' => (!$hasImages && $variantId === null) ? 1 : 0, 
+    ':is_main' => (!$hasImages && $variantId === null) ? 1 : 0,
     ':display_order' => 0,
 ]);
 
@@ -90,6 +149,7 @@ logAdminActivity($pdo, $admin['id'], 'product_image_upload', 'product', $product
     'image_id' => $imageId,
     'variant_id' => $variantId,
     'file_path' => $relativePath,
+    'resized' => ($width > $maxWidth)
 ]);
 
 jsonResponse([

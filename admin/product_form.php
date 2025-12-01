@@ -87,12 +87,12 @@ require __DIR__ . '/_header.php';
                     <div class="label-cell"><label for="slugInput">Slug (URL)</label></div>
                     <div class="field-cell"><input type="text" id="slugInput" required></div>
 
-                    <div class="parent-masked-info" id="parentMaskedInfo">
-                        Ce produit possède des déclinaisons. Le prix, le stock et la disponibilité sont gérés individuellement ci-dessous.
-                    </div>
+                    <div class="label-cell sjs-parent-field"><label for="priceInput">Prix (en euros)</label></div>
+                    <div class="field-cell sjs-parent-field"><input type="number" id="priceInput" min="0" step="0.01" inputmode="decimal"></div>
 
-                    <div class="label-cell js-parent-field"><label for="priceInput">Prix (en euros)</label></div>
-                    <div class="field-cell js-parent-field"><input type="number" id="priceInput" min="0" step="0.01" inputmode="decimal"></div>
+                    <div class="parent-masked-info" id="parentMaskedInfo">
+                        Ce produit possède des déclinaisons. Le stock est géré individuellement ci-dessous.
+                    </div>
 
                     <div class="label-cell js-parent-field"><label for="stockInput">Stock global</label></div>
                     <div class="field-cell js-parent-field"><input type="number" id="stockInput" min="0" step="1"></div>
@@ -100,7 +100,7 @@ require __DIR__ . '/_header.php';
                     <div class="label-cell js-parent-field"><label for="displayOrderInput">Ordre d’affichage</label></div>
                     <div class="field-cell js-parent-field"><input type="number" id="displayOrderInput" step="1" value="0"></div>
 
-                    <div class="label-cell js-parent-field">Statut & Stock</div>
+                    <div class="label-cell js-parent-field">Statut</div>
                     <div class="field-cell js-parent-field">
                         <div class="field-inline">
                             <input type="checkbox" id="isActiveInput" checked><span>Produit actif</span>

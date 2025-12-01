@@ -8,7 +8,7 @@ $pdo = getPdo();
 $products = getHomeProducts($pdo);
 ?>
 
-<section style="height: 80vh; background: url('/assets/img/hero-nanook-2.jpg') center/cover no-repeat; display:flex; align-items:center; justify-content:center; margin-bottom:60px;">
+<section class="hero-container" style="">
     <div style="text-align:center; color:#FFF; height: 100%; display: flex; flex-direction: column">
         <h1 class="hero-title" style="margin-bottom:20px;">
             Mélodies
@@ -19,7 +19,7 @@ $products = getHomeProducts($pdo);
 </section>
 
 <div class="nk-container" id="shop">
-    <div style="text-align:center; max-width:600px; margin: 0 auto 60px;">
+    <div >
         <h2 class="nk-title-lg">La Collection</h2>
 
     </div>

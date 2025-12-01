@@ -112,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         });
+
     });
 
     
@@ -183,6 +184,357 @@ document.addEventListener('DOMContentLoaded', () => {
     if(burgerBtn) burgerBtn.addEventListener('click', openMenu);
     if(menuClose) menuClose.addEventListener('click', closeMenu);
     if(menuOverlay) menuOverlay.addEventListener('click', closeMenu);
+
+
+
+
+
+
+        const attrRadios = document.querySelectorAll('.js-attr-radio');
+
+        const btnAddToCart = document.getElementById('btnAddToCart');
+        const stockMsg = document.getElementById('stockMessageArea');
+        const priceDisplay = document.querySelector('.js-price-display');
+        const descDisplay = document.getElementById('shortDescDisplay');
+        const variantInput = document.getElementById('selectedVariantId');
+        const quantityInput = document.getElementById('quantityInput');
+
+        if( btnAddToCart && priceDisplay) {
+            const mainImg = document.getElementById('mainImg');
+            const thumbsContainer = document.getElementById('thumbsContainer');
+            const mainImgWrap = document.querySelector('.nk-main-image-wrapper');
+
+            let currentImages = [];
+            let currentIdx = 0;
+            let sliderInterval = null;
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+
+            function startSlider() {
+                stopSlider();
+                sliderInterval = setInterval(() => nextImage(), 4000);
+            }
+
+            function stopSlider() {
+                if (sliderInterval) clearInterval(sliderInterval);
+            }
+
+            function showImage(index) {
+                if (!currentImages.length) return;
+                if (index >= currentImages.length) index = 0;
+                if (index < 0) index = currentImages.length - 1;
+                currentIdx = index;
+
+                mainImg.style.opacity = '0.8';
+                setTimeout(() => {
+                    mainImg.src = currentImages[currentIdx];
+                    mainImg.style.opacity = '1';
+                }, 100);
+
+                document.querySelectorAll('.nk-thumb').forEach(t => t.classList.remove('active'));
+                const activeThumb = document.querySelector(`.nk-thumb[data-index="${currentIdx}"]`);
+                if (activeThumb) {
+                    activeThumb.classList.add('active');
+                    if (thumbsContainer) {
+                        const leftPos = activeThumb.offsetLeft - (thumbsContainer.clientWidth / 2) + (activeThumb.clientWidth / 2);
+                        thumbsContainer.scrollTo({left: leftPos, behavior: 'smooth'});
+                    }
+                }
+            }
+
+            function nextImage() {
+                showImage(currentIdx + 1);
+            }
+
+            function prevImage() {
+                showImage(currentIdx - 1);
+            }
+
+            function initGallery(imagesData) {
+                stopSlider();
+                currentImages = imagesData.map(img => img.file_path ? '/storage/product_images/' + img.file_path : '/assets/img/placeholder.jpg');
+                thumbsContainer.innerHTML = '';
+                currentImages.forEach((src, idx) => {
+                    const thumb = document.createElement('div');
+                    thumb.className = (idx === 0) ? 'nk-thumb active' : 'nk-thumb';
+                    thumb.dataset.index = idx;
+                    thumb.innerHTML = `<img src="${src}" alt="">`;
+                    thumb.addEventListener('click', () => {
+                        stopSlider();
+                        showImage(idx);
+                    });
+                    thumbsContainer.appendChild(thumb);
+                });
+                currentIdx = 0;
+                if (currentImages.length) mainImg.src = currentImages[0];
+                if (currentImages.length > 1) startSlider();
+            }
+
+            if (mainImgWrap) {
+                mainImgWrap.addEventListener('touchstart', e => {
+                    touchStartX = e.changedTouches[0].screenX;
+                    stopSlider();
+                }, {passive: true});
+                mainImgWrap.addEventListener('touchend', e => {
+                    touchEndX = e.changedTouches[0].screenX;
+                    if (touchStartX - touchEndX > 50) nextImage();
+                    if (touchEndX - touchStartX > 50) prevImage();
+                }, {passive: true});
+            }
+
+            initGallery(productBase.images);
+
+
+            const formatPrice = (p) => new Intl.NumberFormat('fr-FR', {
+                style: 'decimal',
+                minimumFractionDigits: 2
+            }).format(p) + ' €';
+
+            const formatDate = (dateString) => {
+                let dateObj;
+                if (dateString) {
+                    dateObj = new Date(dateString);
+                } else {
+                    const now = new Date();
+                    now.setMonth(now.getMonth() + 3);
+                    dateObj = now;
+                }
+                return new Intl.DateTimeFormat('fr-FR', {month: 'long', year: 'numeric'}).format(dateObj);
+            };
+
+
+            function updateButtonState(stock, canPreorder, availDate) {
+                const currentQty = parseInt(quantityInput.value) || 1;
+                btnAddToCart.disabled = false;
+                btnAddToCart.textContent = "Ajouter au panier";
+                btnAddToCart.style.backgroundColor = "#1A1A2E";
+                stockMsg.style.display = 'none';
+
+                if (stock <= 0) {
+                    if (canPreorder) {
+                        const dateTxt = formatDate(availDate);
+                        stockMsg.style.display = 'block';
+                        stockMsg.style.color = '#C18C5D';
+                        stockMsg.innerHTML = `Précommande : Expédition prévue en ${dateTxt}`;
+                        btnAddToCart.textContent = "Précommander";
+                        btnAddToCart.style.backgroundColor = "#C18C5D";
+                    } else {
+                        btnAddToCart.disabled = true;
+                        btnAddToCart.textContent = "Rupture de stock";
+                        btnAddToCart.style.backgroundColor = "#ccc";
+                    }
+                } else if (currentQty > stock) {
+                    if (canPreorder) {
+                        const dateTxt = formatDate(availDate);
+                        stockMsg.style.display = 'block';
+                        stockMsg.style.color = '#C18C5D';
+                        stockMsg.innerHTML = `Attention : ${stock} en stock immédiat, le reste en précommande (Dispo ${dateTxt}).`;
+                        btnAddToCart.textContent = "Commander (Stock + Précommande)";
+                    } else {
+                        stockMsg.style.display = 'block';
+                        stockMsg.style.color = '#b91c1c';
+                        stockMsg.innerHTML = `Seulement ${stock} pièces disponibles.`;
+                    }
+                }
+            }
+
+
+            function updateAttributeStates() {
+                const groups = Array.from(document.querySelectorAll('.nk-form-group.js-attr-group'));
+
+                groups.forEach((group, groupIndex) => {
+                    const currentGroupId = group.dataset.groupId;
+                    let previousSelections = [];
+                    let isPreviousComplete = true;
+
+
+                    for (let i = 0; i < groupIndex; i++) {
+                        const prevGroup = groups[i];
+                        const checked = prevGroup.querySelector('input:checked');
+                        if (checked) {
+                            previousSelections.push(parseInt(checked.value));
+                        } else {
+                            isPreviousComplete = false;
+                        }
+                    }
+
+                    group.querySelectorAll('.js-attr-radio').forEach(input => {
+                        const candidateId = parseInt(input.value);
+                        const label = input.closest('label');
+
+                        let isAvailable = false;
+                        let isPreorderOnly = true;
+
+
+                        for (const comboKey in combinations) {
+                            const comboIds = comboKey.split('_').map(Number);
+                            const variant = combinations[comboKey];
+
+                            if (!comboIds.includes(candidateId)) continue;
+
+                            let matchPrevious = true;
+                            for (const prevId of previousSelections) {
+                                if (!comboIds.includes(prevId)) {
+                                    matchPrevious = false;
+                                    break;
+                                }
+                            }
+
+                            if (matchPrevious) {
+
+                                if (variant.stock > 0) {
+                                    isAvailable = true;
+                                    isPreorderOnly = false;
+                                    break;
+                                } else if (Number(variant.preorder) === 1) {
+                                    isAvailable = true;
+
+                                }
+                            }
+                        }
+
+
+                        label.classList.remove('is-unavailable');
+                        label.classList.remove('is-preorder');
+                        label.style.display = '';
+
+                        if (groupIndex === 0) {
+
+                            if (!isAvailable) {
+                                label.classList.add('is-unavailable');
+                            } else if (isPreorderOnly) {
+                                label.classList.add('is-preorder');
+                            }
+                        } else {
+
+                            if (!isPreviousComplete) {
+
+                            } else {
+                                if (!isAvailable) {
+                                    label.style.display = 'none';
+                                    if (input.checked) input.checked = false;
+                                } else if (isPreorderOnly) {
+                                    label.classList.add('is-preorder');
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+
+            function checkCombination() {
+                updateAttributeStates();
+
+                document.querySelectorAll('.nk-attributes-section .nk-form-group').forEach(group => {
+                    const checked = group.querySelector('input:checked');
+                    const labelSpan = group.querySelector('.js-selected-val');
+                    if (labelSpan) labelSpan.textContent = checked ? ' : ' + checked.dataset.name : '';
+
+                    group.querySelectorAll('.nk-attr-label').forEach(lbl => {
+                        if (lbl.querySelector('input:checked')) lbl.classList.add('active');
+                        else lbl.classList.remove('active');
+                    });
+                });
+
+                const groups = document.querySelectorAll('.nk-attributes-section .nk-form-group');
+                let selectedIds = [];
+                let allSelected = true;
+
+                groups.forEach(group => {
+                    const checked = group.querySelector('input:checked');
+                    if (checked) selectedIds.push(parseInt(checked.value));
+                    else allSelected = false;
+                });
+
+                if (!allSelected) {
+                    btnAddToCart.disabled = true;
+                    btnAddToCart.textContent = "Choisir les options";
+                    stockMsg.style.display = 'none';
+                    return;
+                }
+
+                selectedIds.sort((a, b) => a - b);
+                const key = selectedIds.join('_');
+                const variant = combinations[key];
+
+                if (!variant) {
+                    btnAddToCart.disabled = true;
+                    btnAddToCart.textContent = "Indisponible";
+                    stockMsg.style.display = 'none';
+                    return;
+                }
+
+                variantInput.value = variant.id;
+                const finalPrice = (variant.price !== null && variant.price > 0) ? variant.price : productBase.price;
+                priceDisplay.textContent = formatPrice(finalPrice);
+
+                if (variant.desc && variant.desc.trim() !== "") descDisplay.innerHTML = variant.desc;
+                else descDisplay.innerHTML = productBase.desc;
+
+                if (variant.images && variant.images.length > 0) initGallery(variant.images);
+                else initGallery(productBase.images);
+
+                updateButtonState(variant.stock, Number(variant.preorder) === 1, variant.date);
+            }
+
+
+            if (document.querySelector('.js-attr-radio')) {
+                attrRadios.forEach(r => r.addEventListener('change', checkCombination));
+
+
+                const groups = document.querySelectorAll('.nk-attributes-section .nk-form-group');
+                let isAnyChecked = false;
+                groups.forEach(g => {
+                    if (g.querySelector('input:checked')) isAnyChecked = true;
+                });
+
+
+                if (!isAnyChecked && Object.keys(combinations).length > 0) {
+                    let targetKey = null;
+
+
+                    for (const key in combinations) {
+                        const variant = combinations[key];
+                        if (variant.stock > 0 || Number(variant.preorder) === 1) {
+                            targetKey = key;
+                            break;
+                        }
+                    }
+
+
+                    if (!targetKey) {
+                        targetKey = Object.keys(combinations)[0];
+                    }
+
+
+                    if (targetKey) {
+                        const ids = targetKey.split('_');
+                        ids.forEach(id => {
+                            const input = document.querySelector(`.js-attr-radio[value="${id}"]`);
+                            if (input) input.checked = true;
+                        });
+                    }
+                }
+
+
+                checkCombination();
+            } else {
+                updateButtonState(productBase.stock, Number(productBase.preorder) === 1, productBase.date);
+            }
+
+            document.querySelectorAll('.js-qty-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    let val = parseInt(quantityInput.value);
+                    const isInc = (btn.dataset.action === 'inc');
+                    if (isInc) quantityInput.value = val + 1;
+                    else if (val > 1) quantityInput.value = val - 1;
+
+                    if (document.querySelector('.js-attr-radio')) checkCombination();
+                    else updateButtonState(productBase.stock, Number(productBase.preorder) === 1, productBase.date);
+                });
+            });
+        }
 
 
 });
