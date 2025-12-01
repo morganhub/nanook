@@ -164,7 +164,7 @@ foreach ($cartData['items'] as $item) {
                         </div>
                     <?php endforeach; ?>
                 </div>
-
+                <div class="nk-cart-alert"  style="font-size: 0.8rem; color: #888; text-align: center; margin-top: 10px;margin-bottom:20px;">Les frais de port sont offerts pour cette première collection 😊</div>
                 <div style="border-top: 1px solid #ddd; padding-top: 20px; display: flex; justify-content: space-between; font-weight: 700; font-size: 1.2rem;">
                     <span>Total</span>
                     <span id="checkoutTotal"><?= number_format($cartData['total'], 2, ',', ' ') ?> €</span>

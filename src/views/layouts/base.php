@@ -45,5 +45,13 @@
 
 <script src="/assets/js/app.js?v=<?= time(); ?>" defer></script>
 
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5SE2BDKKW4"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-5SE2BDKKW4');
+</script>
 </body>
 </html>
